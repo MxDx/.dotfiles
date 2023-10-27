@@ -126,3 +126,5 @@ alias ipa="ip -c address"
 
 export CHROME_EXECUTABLE="/opt/google/chrome/chrome"
 export PATH="$PATH:/home/maxime/dev/flutter/flutter/bin"
+
+export DOCKER_ID="mxdx02"
