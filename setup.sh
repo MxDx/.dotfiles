@@ -2,6 +2,10 @@ sudo apt-get update
 sudo apt-get install zsh
 chsh -s /bin/zsh
 
+# NVIM  
+sudo apt-get install neovim
+
+# POWERLEVEL10K
 sudo apt install fonts-firacode
 git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
 
