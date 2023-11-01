@@ -121,6 +121,7 @@ source ~/powerlevel10k/powerlevel10k.zsh-theme
 alias lsa="ls -la"
 alias ip="ip -c"
 alias ipa="ip -c address"
+alias kssh="kitten ssh"
 
 [ -f /opt/anaconda/etc/profile.d/conda.sh ] && source /opt/anaconda/etc/profile.d/conda.sh
 
@@ -128,3 +129,6 @@ export CHROME_EXECUTABLE="/opt/google/chrome/chrome"
 export PATH="$PATH:/home/maxime/dev/flutter/flutter/bin"
 
 export DOCKER_ID="mxdx02"
+
+# For ssh kitty support
+# export TERM=xterm
