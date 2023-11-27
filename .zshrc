@@ -123,6 +123,8 @@ alias ip="ip -c"
 alias ipa="ip -c address"
 alias kssh="kitten ssh"
 
+bindkey "^H" backward-delete-word
+
 [ -f /opt/anaconda/etc/profile.d/conda.sh ] && source /opt/anaconda/etc/profile.d/conda.sh
 
 export CHROME_EXECUTABLE="/opt/google/chrome/chrome"
