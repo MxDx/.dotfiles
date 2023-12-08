@@ -16,6 +16,7 @@ export ZSH="$HOME/.oh-my-zsh"
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 ZSH_THEME="robbyrussell"
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=43'
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -48,13 +49,13 @@ ZSH_THEME="robbyrussell"
 # DISABLE_AUTO_TITLE="true"
 
 # Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
+ENABLE_CORRECTION="true"
 
 # Uncomment the following line to display red dots whilst waiting for completion.
 # You can also set it to another string to have that shown instead of the default red dots.
 # e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
 # Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
-# COMPLETION_WAITING_DOTS="true"
+COMPLETION_WAITING_DOTS="true"
 
 # Uncomment the following line if you want to disable marking untracked files
 # under VCS as dirty. This makes repository status check for large repositories
@@ -130,7 +131,15 @@ bindkey "^H" backward-delete-word
 export CHROME_EXECUTABLE="/opt/google/chrome/chrome"
 export PATH="$PATH:/home/maxime/dev/flutter/flutter/bin"
 
+# For cargo bin 
+export PATH="$PATH:/home/maxime/.cargo/bin"
+
 export DOCKER_ID="mxdx02"
 
 # For ssh kitty support
 # export TERM=xterm
+#
+export BROWSER="google-chrome-stable"
+
+
+[ -f /opt/miniconda3/etc/profile.d/conda.sh ] && source /opt/miniconda3/etc/profile.d/conda.sh
