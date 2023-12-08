@@ -124,7 +124,7 @@ alias ip="ip -c"
 alias ipa="ip -c address"
 alias kssh="kitten ssh"
 alias pulldots="git -C ~/.dotfiles pull && source ~/.zshrc"
-alias pushdots="git -C ~/.dotfiles add . && git -C ~/.dotfiles commit -m ${0} && git -C ~/.dotfiles push"
+alias pushdots="git -C ~/.dotfiles add . && git -C ~/.dotfiles/ commit -m ${0} && git -C ~/.dotfiles push"
 
 bindkey "^H" backward-delete-word
 
