@@ -1,6 +1,9 @@
 sudo pacman -S zsh
 chsh -s /bin/zsh
 
+# LAZY GIT
+yay -S lazygit
+
 # Installing the font
 yay -Sy --noconfirm ttf-meslo-nerd-font-powerlevel10k
 
