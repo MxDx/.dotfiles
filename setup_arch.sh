@@ -5,6 +5,8 @@ chsh -s /bin/zsh
 
 # TMUX
 sudo pacman -S tmux
+# TMUX TPM
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 # LAZY GIT
 yay -S lazygit
@@ -23,5 +25,5 @@ git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:
 git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
 git clone https://github.com/zpm-zsh/ls.git ${ZSH_CUSTOM1:-~/.oh-my-zsh/custom}/plugins/ls
 
-# Exa for ls 
+# Exa for ls
 yay -S exa
