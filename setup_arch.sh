@@ -1,5 +1,10 @@
+#!/bin/bash
+
 sudo pacman -S zsh
 chsh -s /bin/zsh
+
+# TMUX
+sudo pacman -S tmux
 
 # LAZY GIT
 yay -S lazygit

@@ -1,6 +1,13 @@
+#!/bin/bash
+
 sudo apt-get update
 sudo apt-get install zsh
 chsh -s /bin/zsh
+
+# TMUX
+sudo apt-get install tmux
+# TMUX TPM
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 # Lazy git install
 LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
