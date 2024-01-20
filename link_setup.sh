@@ -66,6 +66,12 @@ if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
 	else
 		echo "New config not linked, maybe it already exists"
 	fi
+	ln -s ~/.dotfiles/.tmux.keybindings.conf ~/.tmux.keybindings.conf
+	if [ $? -eq 0 ]; then
+		echo "New tmux keybindings config successfully linked"
+	else
+		echo "New config not linked, maybe it already exists"
+	fi
 fi
 
 # GIT
