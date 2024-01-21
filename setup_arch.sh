@@ -3,6 +3,11 @@
 sudo pacman -S zsh
 chsh -s /bin/zsh
 
+# Nice to have addition
+sudo pacman -S zoxide
+sudo pacman -S bat
+sudo pacman -S fzf
+
 # TMUX
 sudo pacman -S tmux
 # TMUX TPM

@@ -4,6 +4,11 @@ sudo apt-get update
 sudo apt-get install zsh
 chsh -s /bin/zsh
 
+# Nice to have addition
+sudo apt install zoxide
+sudo apt install bat
+sudo apt install fzf
+
 # TMUX
 sudo apt-get install tmux
 # TMUX TPM

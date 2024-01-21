@@ -126,7 +126,11 @@ alias kssh="kitten ssh"
 alias pulldots="git -C ~/.dotfiles pull && source ~/.zshrc"
 alias adddots="git -C ~/.dotfiles add . && git -C ~/.dotfiles/ commit -m ${0}"
 alias pushdots="git -C ~/.dotfiles push"
-alias f="ranger"
+alias r="ranger"
+# alias f="nvim $(fzf)"
+
+# Zoxide setup 
+eval "$(zoxide init zsh)"
 
 bindkey "^H" backward-delete-word
 
