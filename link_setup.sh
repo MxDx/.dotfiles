@@ -43,7 +43,7 @@ if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
 	else
 		echo "Old config not saved, maybe it doesn't exist"
 	fi
-	ln -s ~/.dotfiles/.config/nvim ~/.config/nvim
+	ln -s ~/.dotfiles/nvim ~/.config/nvim
 	if [ $? -eq 0 ]; then
 		echo "New nvim config successfully linked"
 	else
