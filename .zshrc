@@ -129,6 +129,11 @@ alias pushdots="git -C ~/.dotfiles push"
 alias r="ranger"
 # alias f="nvim $(fzf)"
 
+# For local aliases
+if [ -f ~/.dotfiles/.zsh_alias ]; then
+  source ~/.dotfiles/.zsh_alias
+fi
+
 # Zoxide setup 
 eval "$(zoxide init zsh)"
 

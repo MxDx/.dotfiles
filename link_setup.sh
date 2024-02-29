@@ -15,6 +15,16 @@ if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
 	else
 		echo "New config not linked, maybe it already exists"
 	fi
+
+	# For aliases
+	if [ -f ./zsh_alias ]; then
+		ln -s ~/.dotfiles/zsh_alias ~/.zsh_alias
+		if [ $? -eq 0 ]; then
+			echo "New zsh_alias config successfully linked"
+		else
+			echo "New config not linked, maybe it already exists"
+		fi
+	fi
 fi
 
 # p10k
