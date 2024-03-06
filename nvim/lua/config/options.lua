@@ -6,3 +6,7 @@ vim.o.expandtab = true -- Pressing the TAB key will insert spaces instead of a T
 vim.o.softtabstop = 4 -- Number of spaces inserted instead of a TAB character
 vim.o.shiftwidth = 4 -- Number of spaces inserted when indenting
 vim.o.smartindent = true -- Makes indenting smart
+
+vim.g.python3_host_prog = vim.fn.exepath("python3")
+vim.g.loaded_python3_provider = nil
+vim.cmd("runtime! plugin/rplugin.vim")
