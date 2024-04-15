@@ -162,6 +162,7 @@ alias pulldots="git -C ~/.dotfiles pull && source ~/.zshrc"
 alias adddots="git -C ~/.dotfiles add . && git -C ~/.dotfiles/ commit -m ${0}"
 alias pushdots="git -C ~/.dotfiles push"
 alias r="ranger"
+alias lg="lazygit"
 # alias f="nvim $(fzf)"
 
 # Handy change dir shortcuts
