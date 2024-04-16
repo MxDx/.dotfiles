@@ -179,8 +179,8 @@ alias ssh='kitten ssh'
 
 
 # For local aliases
-if [ -f ~/.dotfiles/.zsh_alias ]; then
-  source ~/.dotfiles/.zsh_alias
+if [ -f ~/.zsh_local ]; then
+  source ~/.zsh_local
 fi
 
 # Zoxide setup 
@@ -190,12 +190,7 @@ bindkey "^H" backward-delete-word
 
 [ -f /opt/anaconda/etc/profile.d/conda.sh ] && source /opt/anaconda/etc/profile.d/conda.sh
 
-export CHROME_EXECUTABLE="/opt/google/chrome/chrome"
-export PATH="$PATH:/home/maxime/dev/flutter/flutter/bin"
-
 # For cargo bin 
-export PATH="$PATH:/home/maxime/.cargo/bin"
-
 export DOCKER_ID="mxdx02"
 
 # For ssh kitty support
@@ -205,6 +200,3 @@ export BROWSER="google-chrome-stable"
 
 #[ -f /opt/miniconda3/etc/profile.d/conda.sh ] && source /opt/miniconda3/etc/profile.d/conda.sh
 
-#Display Pokemon
-pokemon-colorscripts --no-title -r 1,3,6
-export PATH=$PATH:$HOME/.cargo/bin
