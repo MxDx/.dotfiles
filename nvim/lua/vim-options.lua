@@ -5,7 +5,10 @@ vim.cmd("set shiftwidth=4")
 vim.cmd("set clipboard=unnamedplus") 
 vim.g.mapleader = " "
 vim.keymap.set('n', '<leader>qq', ":wqa<CR>", { desc = "Quit all" })
-vim.keymap.set({'n', 'v', 'i' }, '<C-s>', ":w<CR>", { desc = "Save" })
+vim.keymap.set({'n', 'v'}, '<C-s>', ":w<CR>", { desc = "Save" })
+-- Escape from insert mode and save
+vim.keymap.set('i', '<C-s>', "<Esc>:w<CR>", { desc = "Save" })
+vim.keymap.set('n', '<leader>q', ":q<CR>", { desc = "Quit" })
 vim.keymap.set('n', '<leader>wd', ':q<CR>', { desc = "Close window" })
 
 vim.g.background = "light"
