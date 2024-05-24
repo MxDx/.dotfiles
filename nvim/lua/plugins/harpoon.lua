@@ -25,9 +25,9 @@ return {
         vim.keymap.set("n", "<leader>hp", ":lua require('harpoon.ui').nav_prev()<CR>", { desc = "Harpoon: Previous" })
         vim.keymap.set("n", "<leader>hn", ":lua require('harpoon.ui').nav_next()<CR>", { desc = "Harpoon: Next" })
 
-        vim.keymap.set("n", "<leader>t1", ":lua require('harpoon.tmux').gotoTerminal(1)<CR>", { desc = "Harpoon: Go to Terminal 1" })
-        vim.keymap.set("n", "<leader>t2", ":lua require('harpoon.tmux').gotoTerminal(2)<CR>", { desc = "Harpoon: Go to Terminal 2" })
-        vim.keymap.set("n", "<leader>t3", ":lua require('harpoon.tmux').gotoTerminal(3)<CR>", { desc = "Harpoon: Go to Terminal 3" })
+        vim.keymap.set("n", "<leader>ht1", ":lua require('harpoon.tmux').gotoTerminal(1)<CR>", { desc = "Harpoon: Go to Terminal 1" })
+        vim.keymap.set("n", "<leader>ht2", ":lua require('harpoon.tmux').gotoTerminal(2)<CR>", { desc = "Harpoon: Go to Terminal 2" })
+        vim.keymap.set("n", "<leader>ht3", ":lua require('harpoon.tmux').gotoTerminal(3)<CR>", { desc = "Harpoon: Go to Terminal 3" })
 
         vim.keymap.set("n", "<leader>h1", ":lua require('harpoon.ui').nav_file(1)<CR>", { desc = "Harpoon: Navigate to File 1" })
         vim.keymap.set("n", "<leader>h2", ":lua require('harpoon.ui').nav_file(2)<CR>", { desc = "Harpoon: Navigate to File 2" })
