@@ -11,21 +11,9 @@ fi
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
-# Set name of the theme to load --- if set to "random", it will
-# load a random theme each time oh-my-zsh is loaded, in which case,
-# to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 ZSH_THEME="robbyrussell"
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=43'
-
-# Set list of themes to pick from when loading at random
-# Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in $ZSH/themes/
-# If set to an empty array, this variable will have no effect.
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
-
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
 
 # Uncomment the following line to use hyphen-insensitive completion.
 # Case-sensitive completion must be off. _ and - will be interchangeable.
@@ -34,19 +22,13 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=43'
 # Uncomment one of the following lines to change the auto-update behavior
 # zstyle ':omz:update' mode disabled  # disable automatic updates
 # zstyle ':omz:update' mode auto      # update automatically without asking
-# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
+zstyle ':omz:update' mode reminder  # just remind me to update when it's time
 
 # Uncomment the following line to change how often to auto-update (in days).
 # zstyle ':omz:update' frequency 13
 
-# Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS="true"
-
 # Uncomment the following line to disable colors in ls.
 # DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
 
 # Uncomment the following line to enable command auto-correction.
 ENABLE_CORRECTION="true"
@@ -57,21 +39,13 @@ ENABLE_CORRECTION="true"
 # Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
 COMPLETION_WAITING_DOTS="true"
 
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-# HIST_STAMPS="mm/dd/yyyy"
-
 # Would you like to use another custom folder than $ZSH/custom?
 # ZSH_CUSTOM=/path/to/new-custom-folder
+
+# loading the plugin
+if [[ ! -d $ZSH_CUSTOM/plugins/fzf-tab ]]; then
+    git clone https://github.com/Aloxaf/fzf-tab ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/fzf-tab
+fi
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
@@ -79,13 +53,14 @@ COMPLETION_WAITING_DOTS="true"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-git
-zsh-syntax-highlighting
-zsh-autosuggestions
-colored-man-pages
-ls
-zsh-256color
-sudo
+    git
+    zsh-syntax-highlighting
+    zsh-autosuggestions
+    colored-man-pages
+    ls
+    zsh-256color
+    sudo
+    fzf-tab
 )
 
 # In case a command is not found, try to find the package that has it
@@ -114,11 +89,6 @@ source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
-# export MANPATH="/usr/local/man:$MANPATH"
-
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
-
 # Preferred editor for local and remote sessions
 # if [[ -n $SSH_CONNECTION ]]; then
 #   export EDITOR='vim'
@@ -126,14 +96,6 @@ source $ZSH/oh-my-zsh.sh
 #   export EDITOR='mvim'
 # fi
 
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
 # Example aliases
 alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
@@ -146,6 +108,11 @@ source ~/powerlevel10k/powerlevel10k.zsh-theme
 aurhelper="yay"
 
 alias  c='clear' # clear terminal
+if command -v eza &> /dev/null ; then
+    alias eza='eza'
+else
+    alias eza='ls'
+fi
 alias  l='eza -lh  --icons=auto' # long list
 alias ls='eza -1   --icons=auto' # short list
 alias ll='eza -lha --icons=auto --sort=name --group-directories-first' # long list all
@@ -163,7 +130,14 @@ alias ipa="ip -c address"
 alias pulldots="git -C ~/.dotfiles pull && source ~/.zshrc"
 alias adddots="git -C ~/.dotfiles add . && git -C ~/.dotfiles/ commit -m ${0}"
 alias pushdots="git -C ~/.dotfiles push"
+
+if command -v nvim &> /dev/null ; then
+    alias vim="nvim"
+fi
 alias r="ranger"
+if command -v bat &> /dev/null ; then
+    alias cat="bat"
+fi
 # alias f="nvim $(fzf)"
 
 # Handy change dir shortcuts
@@ -185,8 +159,6 @@ if [ -f ~/.zsh_local ]; then
   source ~/.zsh_local
 fi
 
-# Zoxide setup 
-eval "$(zoxide init zsh)"
 
 bindkey "^H" backward-delete-word
 
@@ -194,13 +166,31 @@ bindkey "^H" backward-delete-word
 
 # For cargo bin 
 export DOCKER_ID="mxdx02"
-
-# For ssh kitty support
-# export TERM=xterm
-#
 export BROWSER="google-chrome-stable"
-
-#[ -f /opt/miniconda3/etc/profile.d/conda.sh ] && source /opt/miniconda3/etc/profile.d/conda.sh
 
 # PATH
 export PATH=$HOME/.local/bin:$PATH
+
+
+# History
+HISTFILE=~/.zsh_history
+HISTSIZE=5000
+SAVEHIST=$HISTSIZE
+HISTDUP=erase
+setopt appendhistory
+setopt hist_ignore_dups
+setopt hist_ignore_all_dups
+setopt hist_save_no_dups
+setopt hist_find_no_dups
+
+# Completion styling
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' # case-insensitive completion
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"   # colorize completions
+zstyle ':completion:*' menu no                            # no menu select
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls $realpath'
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls $realpath'
+
+# Zoxide setup 
+if command -v zoxide &> /dev/null ; then
+    eval "$(zoxide init zsh)"
+fi
