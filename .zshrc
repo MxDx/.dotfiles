@@ -202,3 +202,5 @@ export BROWSER="google-chrome-stable"
 
 #[ -f /opt/miniconda3/etc/profile.d/conda.sh ] && source /opt/miniconda3/etc/profile.d/conda.sh
 
+# PATH
+export PATH=$HOME/.local/bin:$PATH
