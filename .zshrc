@@ -89,7 +89,7 @@ sudo
 )
 
 # In case a command is not found, try to find the package that has it
-if command -v pacman &> /dev/null ; then
+if command -v pacman &> /dev/null ; 
 then
     function command_not_found_handler {
         local purple='\e[1;35m' bright='\e[0;1m' green='\e[1;32m' reset='\e[0m'
@@ -177,7 +177,7 @@ alias .5='cd ../../../../..'
 alias mkdir='mkdir -p'
 
 # Fixes "Error opening terminal: xterm-kitty" when using the default kitty term to open some programs through ssh
-alias ssh='kitten ssh'
+alias kssh='kitten ssh'
 
 
 # For local aliases
