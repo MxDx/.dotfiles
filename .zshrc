@@ -40,7 +40,7 @@ ENABLE_CORRECTION="true"
 COMPLETION_WAITING_DOTS="true"
 
 # Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
+ZSH_CUSTOM=$HOME/.oh-my-zsh/custom
 
 # loading the plugin
 if [[ ! -d $ZSH_CUSTOM/plugins/fzf-tab ]]; then
@@ -194,3 +194,9 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls $realpath'
 if command -v zoxide &> /dev/null ; then
     eval "$(zoxide init zsh)"
 fi
+
+# Fzf setup
+export FZF_DEFAULT_OPTS=" \
+--color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
+--color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
+--color=marker:#f5e0dc,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8"
