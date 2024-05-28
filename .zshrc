@@ -195,6 +195,9 @@ if command -v zoxide &> /dev/null ; then
     eval "$(zoxide init zsh)"
 fi
 
+# Set up fzf key bindings and fuzzy completion
+# source <(fzf --zsh)
+
 # Fzf setup
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
