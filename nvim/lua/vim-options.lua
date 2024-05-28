@@ -2,7 +2,7 @@ vim.cmd("set expandtab")
 vim.cmd("set tabstop=4")
 vim.cmd("set softtabstop=4")
 vim.cmd("set shiftwidth=4")
-vim.cmd("set clipboard=unnamedplus") 
+vim.cmd("set clipboard=unnamedplus")
 vim.g.mapleader = " "
 vim.keymap.set('n', '<leader>qq', ":wqa<CR>", { desc = "Quit all" })
 vim.keymap.set({'n', 'v'}, '<C-s>', ":w<CR>", { desc = "Save" })
@@ -18,7 +18,7 @@ vim.opt.swapfile = false
 -- Navigate between buffers
 vim.keymap.set('n', '<S-h>', ':bprevious <CR>')
 vim.keymap.set('n', '<S-l>', ':bnext <CR>')
-vim.keymap.set('n', '<leader>bd', ':w <CR>:bdelete <CR>')
+vim.keymap.set('n', '<leader>bd', ':w <CR>:bdelete <CR>', { desc = "Delete buffer" })
 
 -- Navigate vim panes better
 vim.keymap.set('n', '<c-k>', ':wincmd k<CR>')
