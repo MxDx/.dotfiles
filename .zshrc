@@ -203,3 +203,13 @@ export FZF_DEFAULT_OPTS=" \
 --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
 --color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
 --color=marker:#f5e0dc,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8"
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/home/maxime/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/home/maxime/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/home/maxime/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/maxime/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+
+. "$HOME/.atuin/bin/env"
+
+eval "$(atuin init zsh)"
