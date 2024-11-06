@@ -48,7 +48,7 @@ return {
                 "bashls",
                 "clangd",
                 "dockerls",
-                "ts_ls",
+                "tsserver",
                 "svelte",
             },
         })
@@ -210,7 +210,7 @@ return {
                     filetypes = { "svelte" },
                 })
             end,
-            ["ts_ls"] = function()
+            ["tsserver"] = function()
                 -- configure ts language server
                 lspconfig["tsserver"].setup({
                     capabilities = capabilities,

@@ -22,7 +22,7 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=43'
 # Uncomment one of the following lines to change the auto-update behavior
 # zstyle ':omz:update' mode disabled  # disable automatic updates
 # zstyle ':omz:update' mode auto      # update automatically without asking
-zstyle ':omz:update' mode reminder  # just remind me to update when it's time
+zstyle ':omz:update' mode auto  # just remind me to update when it's time
 
 # Uncomment the following line to change how often to auto-update (in days).
 # zstyle ':omz:update' frequency 13
@@ -45,9 +45,9 @@ if ! command -v spf &> /dev/null; then
     bash -c "$(curl -sLo- https://superfile.netlify.app/install.sh)"
 fi
 
-# if ! command -v atuin &> /dev/null; then
-#     curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
-# fi
+if ! command -v atuin &> /dev/null; then
+    curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+fi
 
 # Would you like to use another custom folder than $ZSH/custom?
 ZSH_CUSTOM=$HOME/.oh-my-zsh/custom
@@ -222,6 +222,9 @@ if [ -f '/home/maxime/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '
 
 . "$HOME/.atuin/bin/env"
 
+
+
+### Initialize atuin
 eval "$(atuin init zsh)"
 
 # Bug with conda without it
