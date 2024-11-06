@@ -39,6 +39,16 @@ ENABLE_CORRECTION="true"
 # Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
 COMPLETION_WAITING_DOTS="true"
 
+# Check if the 'spf' command exists
+if ! command -v spf &> /dev/null; then
+    # If it doesn't exist, run the installation command
+    bash -c "$(curl -sLo- https://superfile.netlify.app/install.sh)"
+fi
+
+# if ! command -v atuin &> /dev/null; then
+#     curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+# fi
+
 # Would you like to use another custom folder than $ZSH/custom?
 ZSH_CUSTOM=$HOME/.oh-my-zsh/custom
 
@@ -213,3 +223,7 @@ if [ -f '/home/maxime/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '
 . "$HOME/.atuin/bin/env"
 
 eval "$(atuin init zsh)"
+
+# Bug with conda without it
+export CRYPTOGRAPHY_OPENSSL_NO_LEGACY=1
+
