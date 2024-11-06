@@ -38,10 +38,7 @@ return {
                 "html",
                 "cssls",
                 "tailwindcss",
-                "svelte",
                 "lua_ls",
-                "graphql",
-                "emmet_ls",
                 "prismals",
                 "pyright",
                 "rust_analyzer",
@@ -51,6 +48,8 @@ return {
                 "bashls",
                 "clangd",
                 "dockerls",
+                "ts_ls",
+                "svelte",
             },
         })
 
@@ -142,44 +141,6 @@ return {
                     capabilities = capabilities,
                 })
             end,
-            ["svelte"] = function()
-                -- configure svelte server
-                lspconfig["svelte"].setup({
-                    capabilities = capabilities,
-                    on_attach = function(client, bufnr)
-                        vim.api.nvim_create_autocmd("BufWritePost", {
-                            pattern = { "*.js", "*.ts" },
-                            callback = function(ctx)
-                                -- Here use ctx.match instead of ctx.file
-                                client.notify("$/onDidChangeTsOrJsFile", { uri = ctx.match })
-                            end,
-                        })
-                    end,
-                })
-            end,
-            ["graphql"] = function()
-                -- configure graphql language server
-                lspconfig["graphql"].setup({
-                    capabilities = capabilities,
-                    filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
-                })
-            end,
-            ["emmet_ls"] = function()
-                -- configure emmet language server
-                lspconfig["emmet_ls"].setup({
-                    capabilities = capabilities,
-                    filetypes = {
-                        "html",
-                        "typescriptreact",
-                        "javascriptreact",
-                        "css",
-                        "sass",
-                        "scss",
-                        "less",
-                        "svelte",
-                    },
-                })
-            end,
             ["lua_ls"] = function()
                 -- configure lua server (with special settings)
                 lspconfig["lua_ls"].setup({
@@ -238,6 +199,20 @@ return {
             ["dockerls"] = function()
                 -- configure dockerls server
                 lspconfig["dockerls"].setup({
+                    cmd = { "clangd", "--background-index" },
+                    capabilities = capabilities,
+                })
+            end,
+            ["svelte"] = function()
+                -- configure svelte-language-server
+                lspconfig["svelte"].setup({
+                    capabilities = capabilities,
+                    filetypes = { "svelte" },
+                })
+            end,
+            ["ts_ls"] = function()
+                -- configure ts language server
+                lspconfig["tsserver"].setup({
                     capabilities = capabilities,
                 })
             end,
