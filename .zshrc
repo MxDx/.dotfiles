@@ -45,9 +45,9 @@ if ! command -v spf &> /dev/null; then
     bash -c "$(curl -sLo- https://superfile.netlify.app/install.sh)"
 fi
 
-if ! command -v atuin &> /dev/null; then
-    curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
-fi
+# if ! command -v atuin &> /dev/null; then
+#     curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+# fi
 
 # Would you like to use another custom folder than $ZSH/custom?
 ZSH_CUSTOM=$HOME/.oh-my-zsh/custom
