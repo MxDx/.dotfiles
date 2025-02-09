@@ -36,3 +36,5 @@ vim.keymap.set("n", "<leader>r", ":%s/", {})
 -- Window controls
 vim.keymap.set("n", "<leader>ws", ":split<CR>", { desc = "Split window" })
 vim.keymap.set("n", "<leader>wv", ":vsplit<CR>", { desc = "Vsplit window" })
+
+vim.opt.shada = ""

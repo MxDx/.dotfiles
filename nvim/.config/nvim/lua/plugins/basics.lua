@@ -28,6 +28,7 @@ return {
     },
 
     {
+        -- For syntax highlighting
         "nvim-treesitter/nvim-treesitter",
         build = ":TSUpdate",
         config = function()
@@ -37,6 +38,28 @@ return {
                 ensure_installed = { "lua", "bash" },
                 highlight = { enable = true },
                 indent = { enable = true },
+            })
+        end,
+    },
+    {
+        "s1n7ax/nvim-window-picker",
+        name = "window-picker",
+        event = "VeryLazy",
+        version = "2.*",
+        config = function()
+            require("window-picker").setup({
+                -- type of hints you want to get
+                -- following types are supported
+                -- 'statusline-winbar' | 'floating-big-letter' | 'floating-letter'
+                -- 'statusline-winbar' draw on 'statusline' if possible, if not 'winbar' will be
+                -- 'floating-big-letter' draw big letter on a floating window
+                -- 'floating-letter' draw letter on a floating window
+                -- used
+                hint = "statusline-winbar",
+
+                -- when you go to window selection mode, status bar will show one of
+                -- following letters on them so you can use that letter to select the window
+                selection_chars = "FJDKSLA;CMRUEIWOQP",
             })
         end,
     },

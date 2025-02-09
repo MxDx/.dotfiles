@@ -34,7 +34,6 @@ return {
         mason_lspconfig.setup({
             -- list of servers for mason to install
             ensure_installed = {
-                "tsserver",
                 "html",
                 "cssls",
                 "tailwindcss",
@@ -48,7 +47,6 @@ return {
                 "bashls",
                 "clangd",
                 "dockerls",
-                "tsserver",
                 "svelte",
             },
         })
@@ -208,12 +206,6 @@ return {
                 lspconfig["svelte"].setup({
                     capabilities = capabilities,
                     filetypes = { "svelte" },
-                })
-            end,
-            ["tsserver"] = function()
-                -- configure ts language server
-                lspconfig["tsserver"].setup({
-                    capabilities = capabilities,
                 })
             end,
         })
