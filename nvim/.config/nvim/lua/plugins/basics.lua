@@ -55,11 +55,21 @@ return {
                 -- 'floating-big-letter' draw big letter on a floating window
                 -- 'floating-letter' draw letter on a floating window
                 -- used
-                hint = "statusline-winbar",
+                -- hint = "statusline-winbar",
+                -- Use floating letters for window hints
+                hint = "floating-letter",
 
                 -- when you go to window selection mode, status bar will show one of
                 -- following letters on them so you can use that letter to select the window
                 selection_chars = "FJDKSLA;CMRUEIWOQP",
+                filter_rules = {
+                    include_current_win = false,
+                    autoselect_one = true,
+                    bo = {
+                        -- Exclude Neo-tree windows
+                        filetype = { "neo-tree", "neo-tree-popup", "neo-tree-filesystem" },
+                    },
+                },
             })
         end,
     },
@@ -70,7 +80,7 @@ return {
             "nvim-lua/plenary.nvim",
             "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
             "MunifTanjim/nui.nvim",
-            -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
+            "3rd/image.nvim",     -- Optional image support in preview window: See `# Preview Mode` for more information
         },
         config = function()
             require("neo-tree").setup({
@@ -87,6 +97,10 @@ return {
                         --               -- the current file is changed while the tree is open.
                     },
                 },
+                source_selector = {
+                    winbar = true,
+                    statusline = false,
+                },
             })
             vim.keymap.set("n", "<leader>e", ":Neotree filesystem toggle left<CR>", {})
             vim.keymap.set("n", "<C-n>", ":Neotree filesystem reveal left<CR>", {})
@@ -96,52 +110,13 @@ return {
         "nvim-lualine/lualine.nvim",
         dependencies = { "nvim-tree/nvim-web-devicons" },
         config = function()
-            require("lualine").setup()
-            options = {
-                theme = "dracula",
-            }
-            sections = {
-                lualine_a = {
-                    {
-                        "buffers",
-                        show_filename_only = true, -- Shows shortened relative path when set to false.
-                        hide_filename_extension = false, -- Hide filename extension when set to true.
-                        show_modified_status = true, -- Shows indicator when the buffer is modified.
-
-                        mode = 0,      -- 0: Shows buffer name
-                        -- 1: Shows buffer index
-                        -- 2: Shows buffer name + buffer index
-                        -- 3: Shows buffer number
-                        -- 4: Shows buffer name + buffer number
-
-                        max_length = vim.o.columns * 2 / 3, -- Maximum width of buffers component,
-                        -- it can also be a function that returns
-                        -- the value of `max_length` dynamically.
-                        filetype_names = {
-                            TelescopePrompt = "Telescope",
-                            dashboard = "Dashboard",
-                            packer = "Packer",
-                            fzf = "FZF",
-                            alpha = "Alpha",
-                        }, -- Shows specific buffer name for that filetype ( { `filetype` = `buffer_name`, ... } )
-
-                        -- Automatically updates active buffer color to match color of other components (will be overidden if buffers_color is set)
-                        use_mode_colors = false,
-
-                        buffers_color = {
-                            -- Same values as the general color option can be used here.
-                            active = "lualine_{section}_normal", -- Color for active buffer.
-                            inactive = "lualine_{section}_inactive", -- Color for inactive buffer.
-                        },
-
-                        symbols = {
-                            modified = " ●", -- Text to show when the buffer is modified
-                            alternate_file = "#", -- Text to show to identify the alternate file
-                            directory = "", -- Text to show when the buffer is a directory
-                        },
-                    },
+            require("lualine").setup({
+                options = {
+                    section_separators = { left = "", right = "" },
+                    component_separators = { left = "", right = "" },
+                    theme = "auto",
                 },
-            }
+            })
         end,
     },
 
