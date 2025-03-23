@@ -2,7 +2,18 @@ vim.cmd("set expandtab")
 vim.cmd("set tabstop=4")
 vim.cmd("set softtabstop=4")
 vim.cmd("set shiftwidth=4")
-vim.cmd("set clipboard=unnamedplus")
+
+-- For clipboard support
+vim.cmd("set clipboard+=unnamedplus")
+-- Custom mappings to prevent deletion from copying to clipboard
+vim.api.nvim_set_keymap('n', 'd', '"_d', { noremap = true })  -- Normal mode deletion
+vim.api.nvim_set_keymap('v', 'd', '"_d', { noremap = true })  -- Visual mode deletion
+vim.api.nvim_set_keymap('n', 'x', '"_x', { noremap = true })  -- Single character deletion
+-- Mapping for cutting (d) to copy to clipboard
+vim.api.nvim_set_keymap('n', '<Leader>d', '"+d', { noremap = true })  -- Normal mode cut
+vim.api.nvim_set_keymap('v', '<Leader>d', '"+d', { noremap = true })  -- Visual mode cut
+
+
 vim.g.mapleader = " "
 vim.keymap.set("n", "<leader>qq", ":wqa<CR>", { desc = "Quit all and save" })
 vim.keymap.set({ "n", "v" }, "<C-s>", ":w<CR>", { desc = "Save" })
@@ -18,7 +29,7 @@ vim.wo.relativenumber = true
 
 vim.g.background = "light"
 
-vim.opt.swapfile = false
+vim.opt.swapfile = true
 
 -- Navigate between buffers
 vim.keymap.set("n", "<S-h>", ":bprevious <CR>")
