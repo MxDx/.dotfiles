@@ -20,8 +20,17 @@ return {
 
         null_ls.setup({
             sources = {
-                null_ls.builtins.formatting.stylua,
-                null_ls.builtins.formatting.black,
+-- Lua formatter
+                null_ls.builtins.formatting.stylua.with({
+                    extra_args = { "--line-length", "120" },
+                }),
+
+                -- Python formatter
+                null_ls.builtins.formatting.black.with({
+                    extra_args = { "--line-length", "120" },
+                }),
+                -- null_ls.builtins.formatting.stylua,
+                -- null_ls.builtins.formatting.black,
                 -- null_ls.builtins.formatting.prettier,
                 -- null_ls.builtins.formatting.beautysh,
                 -- null_ls.builtins.diagnostics.shellcheck,
