@@ -108,10 +108,10 @@ return {
                 keymap.set("n", "<leader>cd", vim.diagnostic.open_float, opts) -- show diagnostics for line
 
                 opts.desc = "Go to previous diagnostic"
-                keymap.set("n", "[d", vim.diagnostic.goto_prev, opts) -- jump to previous diagnostic in buffer
+                keymap.set("n", "[d", vim.diagnostic.get_prev, opts) -- jump to previous diagnostic in buffer
 
                 opts.desc = "Go to next diagnostic"
-                keymap.set("n", "]d", vim.diagnostic.goto_next, opts) -- jump to next diagnostic in buffer
+                keymap.set("n", "]d", vim.diagnostic.get_next, opts) -- jump to next diagnostic in buffer
 
                 opts.desc = "Show documentation for what is under cursor"
                 keymap.set("n", "K", vim.lsp.buf.hover, opts) -- show documentation for what is under cursor
@@ -126,11 +126,40 @@ return {
 
         -- Change the Diagnostic symbols in the sign column (gutter)
         -- (not in youtube nvim video)
-        local signs = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
-        for type, icon in pairs(signs) do
-            local hl = "DiagnosticSign" .. type
-            vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
-        end
+        -- local signs = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
+        -- for type, icon in pairs(signs) do
+        --     local hl = "DiagnosticSign" .. type
+        --     vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
+        -- end
+
+        -- Replace with this new configuration:
+        vim.diagnostic.config({
+            virtual_text = {
+                -- source = "if_many", -- Show virtual text only if multiple diagnostics exist on a line
+                prefix = "■", -- Custom prefix for virtual text
+                format = function(diagnostic)
+                  return string.format("%s (%s)", diagnostic.message, diagnostic.source)
+                end,
+            },
+            signs = {
+                text = {
+                    [vim.diagnostic.severity.ERROR] = "",
+                    [vim.diagnostic.severity.WARN] = "",
+                    [vim.diagnostic.severity.HINT] = "󰠠",
+                    [vim.diagnostic.severity.INFO] = "",
+                },
+                -- Optional: define highlight groups
+                hl = {
+                  [vim.diagnostic.severity.ERROR] = "DiagnosticSignError",
+                  [vim.diagnostic.severity.WARN] = "DiagnosticSignWarn",
+                  [vim.diagnostic.severity.HINT] = "DiagnosticSignHint",
+                  [vim.diagnostic.severity.INFO] = "DiagnosticSignInfo",
+                },
+            },
+            underline = true,
+            update_in_insert = false,
+            severity_sort = true,
+        })
 
         mason_lspconfig.setup_handlers({
             -- default handler for installed servers

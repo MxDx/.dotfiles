@@ -36,7 +36,10 @@ return {
             config.setup({
                 auto_install = true,
                 ensure_installed = { "lua", "bash" },
-                highlight = { enable = true },
+                highlight = {
+                    enable = true,
+                    additional_vim_regex_highlighting = true,
+                },
                 indent = { enable = true },
             })
         end,
@@ -154,7 +157,16 @@ return {
                             },
                         },
                     },
-                    lualine_x = { "encoding", "fileformat", "filetype" },
+                    lualine_x = {
+                        "encoding",
+                        {
+                            function()
+                                return require("auto-session.lib").current_session_name(true)
+                            end,
+                        },
+                        "fileformat",
+                        "filetype",
+                    },
                     lualine_y = { "progress" },
                     lualine_z = { "location" },
                 },

@@ -145,10 +145,8 @@ if command -v nvim &> /dev/null ; then
     alias vim="nvim"
 fi
 alias r="ranger"
-if command -v bat &> /dev/null ; then
-    alias cat="bat"
-fi
-# alias f="nvim $(fzf)"
+
+# alias fvim="nvim $(fzf)"
 
 # Handy change dir shortcuts
 alias ..='cd ..'
@@ -163,6 +161,11 @@ alias mkdir='mkdir -p'
 # Fixes "Error opening terminal: xterm-kitty" when using the default kitty term to open some programs through ssh
 alias kssh='kitten ssh'
 
+# Curl jq alias
+cjq() {
+    curl -s "$1" | jq
+}
+
 
 # For local aliases
 if [ -f ~/.zsh_local ]; then
@@ -176,7 +179,7 @@ bindkey "^H" backward-delete-word
 
 # For cargo bin 
 export DOCKER_ID="mxdx02"
-export BROWSER="google-chrome-stable"
+# export BROWSER="google-chrome-stable"
 
 # PATH
 export PATH=$HOME/.local/bin:$PATH
@@ -238,9 +241,9 @@ function y() {
 ### Initialize atuin
 eval "$(atuin init zsh)"
 
-# Bug with conda without it
-export CRYPTOGRAPHY_OPENSSL_NO_LEGACY=1
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-
-
-
+# Set the terminal program to use
+export TERM_PROGRAM=tmux
