@@ -244,6 +244,27 @@ eval "$(atuin init zsh)"
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
 # Set the terminal program to use
+
 export TERM_PROGRAM=tmux
+
+
+
+# Custom gif for fastfetch
+# Take a random gif from the directory $HOME/.config/neofetch/gifs
+# https://superuser.com/questions/1107200/optimize-animated-gif-size-in-command-line
+# https://gist.github.com/rowe-morehouse/63d19b9b1cc7cd3c488f1f48ed4c1baa
+cfetch() {
+    # Find all files in the directory, shuffle, and pick one.
+    # -print0 and xargs -0 handle spaces and special characters better.
+    GIF_FILE=$(find "$HOME/.dotfiles/gifs/optimized_gifs" -maxdepth 1 -type f -print0 | shuf -z -n 1)
+    # If a file was found, run the command
+    if [ -n "$GIF_FILE" ]; then
+        kitten icat -n --place 50x50@0x0 --scale-up --align center "$GIF_FILE" | fastfetch --logo-width 50 --raw -
+    else
+        echo "Error: No GIFs found in $HOME/.config/neofetch/gifs/optimized_gifs"
+    fi
+}
+
+
+
