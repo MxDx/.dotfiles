@@ -247,3 +247,13 @@ export NVM_DIR="$HOME/.nvm"
 
 # Set the terminal program to use
 export TERM_PROGRAM=tmux
+
+
+# FZF function for ssh connection 
+s () {
+  local server
+  server=$(grep -E '^Host ' ~/.ssh/config | awk '{print $2}' | fzf)
+  if [[ -n $server ]]; then
+    ssh $server
+  fi
+}
