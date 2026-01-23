@@ -45,3 +45,11 @@ vim.keymap.set("n", "<c-l>", ":wincmd l<CR>")
 vim.wo.number = true
 
 vim.opt.shada = ""
+
+-- Sets the column limit
+vim.opt.textwidth = 160
+
+-- 't' auto-wraps text using textwidth
+-- 'q' allows formatting of comments with "gq"
+-- 'j' removes comment leaders when joining lines
+vim.opt.formatoptions:append("tqj")
