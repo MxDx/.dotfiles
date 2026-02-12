@@ -1,3 +1,5 @@
 nvim/lazy-lock.json
 .zsh_alias
 lazy-lock.json
+nvim/.config/nvim/lazy-lock.json
+nvim/.config/nvim/lazyvim.json
