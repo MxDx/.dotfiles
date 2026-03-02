@@ -5,7 +5,7 @@
   "spacing": 0,
   "modules-left": ["hyprland/workspaces", "custom/uptime", "cpu", "memory"],
 
-  "modules-center": ["custom/lock", "clock", "custom/music"],
+  "modules-center": ["clock", "custom/music"],
 
   "modules-right": ["custom/pomodoro", "bluetooth", "network", "pulseaudio", "backlight", "battery"],
 
@@ -21,7 +21,7 @@
     "format": "󰂲",
     "format-on": "{icon}",
     "format-off": "{icon}",
-    "format-connected": "{icon}",
+    "format-connected": "{icon} {device_enumerate}",
     "format-icons": {
       "on": "󰂯",
       "off": "󰂲",
