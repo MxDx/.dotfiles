@@ -1,50 +1,80 @@
 {
-  "gtk-layer-shell": true,
-  "reload_style_on_change": true,
+  "layer": "top",
   "position": "top",
-  "modules-left": ["hyprland/workspaces"],
-  "modules-center": ["hyprland/window", "cpu", "memory"],
-  "modules-right": ["network", "pulseaudio", "bluetooth", "battery", "clock"],
-  "clock": {
-    "format": "<span foreground='#f5c2e7'>   </span>{:%a %d %H:%M}",
-    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-  },
-  "battery": {
-    "states": {
-      "warning": 30,
-      "critical": 15,
+  "margin-bottom": -10,
+  "spacing": 0,
+  "modules-left": ["hyprland/workspaces", "custom/uptime", "cpu", "memory"],
+
+  "modules-center": ["clock"],
+
+  "modules-right": ["custom/pomodoro", "bluetooth", "network", "pulseaudio", "backlight", "battery"],
+
+  "hyprland/workspaces": {
+    "format": "{name}: {icon}",
+    "format-icons": {
+      "active": "",
+      "default": "",
     },
-    "format": "<span size='13000' foreground='#a6e3a1'>{icon} </span> {capacity}%",
-    "format-warning": "<span size='13000' foreground='#B1E3AD'>{icon} </span> {capacity}%",
-    "format-critical": "<span size='13000' foreground='#E38C8F'>{icon} </span> {capacity}%",
-    "format-charging": "<span size='13000' foreground='#B1E3AD'> </span>{capacity}%",
-    "format-plugged": "<span size='13000' foreground='#B1E3AD'> </span>{capacity}%",
-    "format-alt": "<span size='13000' foreground='#B1E3AD'>{icon} </span> {time}",
-    "format-full": "<span size='13000' foreground='#B1E3AD'> </span>{capacity}%",
-    "format-icons": ["", "", "", "", ""],
-    "tooltip-format": "{time}",
   },
-  // "network": {
-  //   "format-wifi": "<span size='13000' foreground='#f5e0dc'>  </span>{essid}",
-  //   "format-ethernet": "<span size='13000' foreground='#f5e0dc'>󰤭  </span> Disconnected",
-  //   "format-linked": "{ifname} (No IP) ",
-  //   "format-disconnected": "<span size='13000' foreground='#f5e0dc'>  </span>Disconnected",
-  //   "tooltip-format-wifi": "Signal Strenght: {signalStrength}%",
-  //   "on-click": "nm-connection-editor",
-  // },
+
+  "bluetooth": {
+    "format": "󰂲",
+    "format-on": "{icon}",
+    "format-off": "{icon}",
+    "format-connected": "{icon}",
+    "format-icons": {
+      "on": "󰂯",
+      "off": "󰂲",
+      "connected": "󰂱",
+    },
+    "on-click": "blueman-manager",
+    "tooltip-format-connected": "{device_enumerate}",
+  },
+
+  "custom/music": {
+    "format": "  {}",
+    "escape": true,
+    "interval": 5,
+    "tooltip": false,
+    "exec": "playerctl metadata --format='{{ artist }} - {{ title }}'",
+    "on-click": "playerctl play-pause",
+    "max-length": 50,
+  },
+
+  "clock": {
+    "tooltip": false,
+    "format": "{:%H:%M:%S  -  %d/%m}",
+    "interval": 1,
+  },
 
   "network": {
-    "tooltip": true,
-    "format-wifi": " {ifname}",
-    "rotate": 0,
-    "format-ethernet": "󰈀 ",
-    "tooltip-format": "Network: <big><b>{essid}</b></big>\nSignal strength: <b>{signaldBm}dBm ({signalStrength}%)</b>\nFrequency: <b>{frequency}MHz</b>\nInterface: <b>{ifname}</b>\nIP: <b>{ipaddr}/{cidr}</b>\nGateway: <b>{gwaddr}</b>\nNetmask: <b>{netmask}</b>",
-    "format-linked": "󰈀 {ifname} (No IP)",
-    "format-disconnected": "󰖪 ",
-    "tooltip-format-disconnected": "Disconnected",
-    "format-alt": "<span foreground='#99ffdd'> {bandwidthDownBytes}</span> <span foreground='#ffcc66'> {bandwidthUpBytes}</span>",
-    "interval": 2,
+    "format-wifi": "󰤢 {essid}",
+    "format-ethernet": "󰈀 {essid}",
+    "format-disconnected": "󰤠 ",
+    "interval": 5,
+    "tooltip-format": "{essid} ({signalStrength}%) - {ifname}",
+    "on-click": "nm-connection-editor",
   },
+
+  "cpu": {
+    "interval": 1,
+    "format": "  {icon0}{icon1}{icon2}{icon3} {usage:>2}%",
+    "format-icons": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"],
+    "on-click": "kitty -e htop",
+  },
+
+  "memory": {
+    "interval": 30,
+    "format": "  {used:0.1f}G/{total:0.1f}G",
+    "tooltip-format": "Memory",
+  },
+
+  "backlight": {
+    "format": "{icon}  {percent}%",
+    "format-icons": ["", "󰃜", "󰃛", "󰃞", "󰃝", "󰃟", "󰃠"],
+    "tooltip": false,
+  },
+
   "pulseaudio": {
     "format": "{icon}  {volume}%",
     "format-muted": "",
@@ -53,31 +83,35 @@
     },
     "on-click": "pavucontrol",
   },
-  "bluetooth": {
-    "format": "<span foreground='#89b4fa'></span>",
-    "format-connected": "<span foreground='#89b4fa'></span>",
-    "tooltip-format-connected": "{device_enumerate}",
-    "on-click": "blueman-manager",
-  },
-  "cpu": {
-    "format": "<span foreground='#fab387'></span> {usage}%",
-    "on-click": "kitty -e htop",
-  },
-  "memory": {
+
+  "battery": {
+    "interval": 2,
     "states": {
-      "c": 90, // critical
-      "h": 60, // high
-      "m": 30, // medium
+      // "good": 95,
+      "warning": 30,
+      "critical": 15,
     },
-    "interval": 30,
-    "format": "󰾆 {used}GB",
-    "rotate": 0,
-    "format-m": "󰾅 {used}GB",
-    "format-h": "󰓅 {used}GB",
-    "format-c": " {used}GB",
-    "format-alt": "󰾆 {percentage}%",
-    "max-length": 10,
-    "tooltip": true,
-    "tooltip-format": "󰾆 {percentage}%\n {used:0.1f}GB/{total:0.1f}GB",
+    "format": "{icon}  {capacity}%",
+    "format-full": "{icon}  {capacity}%",
+    "format-charging": " {capacity}%",
+    "format-plugged": " {capacity}%",
+    "format-alt": "{icon} {time}",
+    // "format-good": "", // An empty format will hide the module
+    // "format-full": "",
+    "format-icons": ["", "", "", "", ""],
+  },
+
+  "custom/lock": {
+    "tooltip": false,
+    "on-click": "sh -c '(sleep 0s; hyprlock)' & disown",
+    "format": "",
+  },
+
+  "custom/pomodoro": {
+    "format": "{}",
+    "return-type": "json",
+    "exec": "waybar-module-pomodoro --no-work-icons",
+    "on-click": "waybar-module-pomodoro toggle",
+    "on-click-right": "waybar-module-pomodoro reset",
   },
 }
