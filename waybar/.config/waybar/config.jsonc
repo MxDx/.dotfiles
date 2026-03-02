@@ -3,11 +3,11 @@
   "position": "top",
   "margin-bottom": -10,
   "spacing": 0,
-  "modules-left": ["hyprland/workspaces", "custom/uptime", "cpu", "memory"],
+  "modules-left": ["hyprland/workspaces", "cpu", "memory"],
 
   "modules-center": ["clock", "custom/music"],
 
-  "modules-right": ["custom/pomodoro", "bluetooth", "network", "pulseaudio", "backlight", "battery"],
+  "modules-right": ["bluetooth", "network", "pulseaudio", "backlight", "battery"],
 
   "hyprland/workspaces": {
     "format": "{name}: {icon}",
@@ -21,7 +21,7 @@
     "format": "󰂲",
     "format-on": "{icon}",
     "format-off": "{icon}",
-    "format-connected": "{icon} {device_enumerate}",
+    "format-connected": "{icon}",
     "format-icons": {
       "on": "󰂯",
       "off": "󰂲",
