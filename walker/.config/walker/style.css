@@ -1,0 +1,39 @@
+/* Catppuccin Mocha Palette */
+@define-color base #1e1e2e;
+@define-color text #cdd6f4;
+@define-color surface0 #313244;
+@define-color accent #cba6f7; /* Mauve */
+@define-color overlay0 #6c7086;
+
+#window {
+  background-color: transparent;
+}
+
+#box {
+  background-color: @base;
+  border: 2px solid @accent;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+#input {
+  background-color: @surface0;
+  color: @text;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+#entry:selected {
+  background-color: @accent;
+  color: @base;
+  border-radius: 6px;
+}
+
+#entry label {
+  color: @text;
+}
+
+#entry:selected label {
+  color: @base;
+}

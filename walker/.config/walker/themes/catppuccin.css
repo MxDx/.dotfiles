@@ -1,0 +1,99 @@
+@define-color rosewater #f5e0dc;
+@define-color flamingo #f2cdcd;
+@define-color pink #f5c2e7;
+@define-color mauve #cba6f7;
+@define-color red #f38ba8;
+@define-color maroon #eba0ac;
+@define-color peach #fab387;
+@define-color yellow #f9e2af;
+@define-color green #a6e3a1;
+@define-color teal #94e2d5;
+@define-color sky #89dceb;
+@define-color sapphire #74c7ec;
+@define-color blue #89b4fa;
+@define-color lavender #b4befe;
+@define-color text #cdd6f4;
+@define-color subtext1 #bac2de;
+@define-color subtext0 #a6adc8;
+@define-color overlay2 #9399b2;
+@define-color overlay1 #7f849c;
+@define-color overlay0 #6c7086;
+@define-color surface2 #585b70;
+@define-color surface1 #45475a;
+@define-color surface0 #313244;
+@define-color base #1e1e2e;
+@define-color mantle #181825;
+@define-color crust #11111b;
+
+/* --- Global Settings --- */
+* {
+  font-family: "MesloLGS Nerd Font Mono Bold", "Symbols Nerd Font";
+  font-size: 16px;
+  outline: none;
+  border: none;
+}
+
+/* --- Window (The Main Container) --- */
+#window {
+  background-color: transparent; /* Allows Hyprland to handle the outer shadow/blur if desired */
+}
+
+#box {
+  margin: 0;
+  padding: 10px;
+  background-color: @base;
+  border: 3px solid @mauve;
+  border-radius: 12px;
+}
+
+/* --- Search Input Area --- */
+#input {
+  margin: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  color: @text;
+  background-color: @surface0;
+  border-bottom: 3px solid @sky;
+}
+
+/* --- The Results List --- */
+/* Walker uses a ScrolledWindow/List internally */
+#list {
+  margin: 10px;
+  padding: 5px;
+  background-color: @base;
+}
+
+/* --- Entry Styling (Rows) --- */
+#entry {
+  padding: 12px;
+  margin: 4px 5px;
+  border-radius: 8px;
+  transition: all 0.1s ease-in-out;
+}
+
+/* Icons Styling */
+#icon {
+  margin-right: 15px;
+  background: transparent;
+}
+
+/* Text inside rows */
+#text {
+  color: @text;
+  background: transparent;
+}
+
+/* --- Selected State --- */
+#entry:selected {
+  background-color: @mauve;
+}
+
+#entry:selected #text {
+  color: @base;
+  font-weight: bold;
+}
+
+#entry:selected #subtext {
+  color: @surface1;
+}

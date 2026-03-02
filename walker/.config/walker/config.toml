@@ -1,0 +1,23 @@
+[ui]
+fullscreen = false
+width = 600
+height = 400
+# Centers the window on your monitor
+align_x = "center"
+align_y = "center"
+theme = "catppuccin" # Points to themes/catppuccin folder or just style.css
+
+[search]
+# Instant search as you type
+delay = 0 
+placeholder = "Search apps, files, or calculations..."
+
+[[plugins]]
+name = "clipboard"
+placeholder = "Clipboard"
+prefix = "cl "
+switcher_only = true
+
+[clipboard]
+max_entries = 50
+image_height = 100
