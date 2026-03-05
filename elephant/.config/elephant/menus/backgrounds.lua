@@ -5,15 +5,13 @@ Cache = false
 SearchName = true
 Description = "Pick a background from ~/.config/backgrounds"
 
--- We'll set hyprpaper via a helper script (next step)
 Action = "sh -lc '$HOME/.config/hypr/scripts/set-wallpaper.sh %VALUE%'"
 
 function GetEntries()
-	local entries = {
-		{ Name = "DEBUG: menu loaded", Value = "OK", Icon = "dialog-information" },
-	}
-
+	local entries = {}
 	local dir = os.getenv("HOME") .. "/.config/backgrounds"
+
+	-- Improved find command to handle spaces in filenames more safely
 	local cmd = "find '"
 		.. dir
 		.. "' -maxdepth 1 -xtype f \\( "
@@ -23,13 +21,22 @@ function GetEntries()
 	local handle = io.popen(cmd)
 	if handle then
 		for file in handle:lines() do
+			local fullPath = dir .. "/" .. file
 			table.insert(entries, {
-				Name = file,
-				Value = dir .. "/" .. file,
-				Icon = "image-x-generic",
+				Text = file, -- what Walker shows
+				Subtext = "background", -- optional
+				Value = fullPath, -- passed to your script as %VALUE%
+				Preview = fullPath, -- file to preview
+				PreviewType = "file",
+				Icon = fullPath,
 			})
 		end
 		handle:close()
+	end
+
+	-- If list is empty, add a hint
+	if #entries == 0 then
+		table.insert(entries, { Name = "No backgrounds found", Value = "" })
 	end
 
 	return entries
