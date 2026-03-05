@@ -21,6 +21,12 @@ function GetEntries()
 	local handle = io.popen(cmd)
 	if handle then
 		for file in handle:lines() do
+			-- Check if file is not default.*
+			if file:match("^default%..+$") then
+				do
+					break
+				end
+			end
 			local fullPath = dir .. "/" .. file
 			table.insert(entries, {
 				Text = file, -- what Walker shows
