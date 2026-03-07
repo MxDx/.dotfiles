@@ -27,6 +27,7 @@
 #backlight,
 #network,
 #custom-lock,
+#custom-music,
 #battery {
   background-color: @surface0;
   padding: 0.3rem 0.8rem;
@@ -78,9 +79,22 @@
 
 /* --- Center Module (Clock) --- */
 #clock {
-  border-radius: 8px;
+  border-bottom-left-radius: 8px;
+  border-top-left-radius: 8px;
   color: @sky;
   font-weight: bold;
+}
+
+#custom-music {
+  border-bottom-right-radius: 8px;
+  border-top-right-radius: 8px;
+  font-weight: bold;
+}
+#tooltip {
+  background: rgba(30, 30, 46, 0.9);
+  border: 1px solid #cba6f7;
+  border-radius: 10px;
+  padding: 15px;
 }
 
 /* --- Right Modules (Seamless Pill Style) --- */

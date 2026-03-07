@@ -27,7 +27,7 @@
       "off": "󰂲",
       "connected": "󰂱",
     },
-    "on-click": "blueman-manager",
+    "on-click": "control --bluetooth",
     "tooltip-format-connected": "{device_enumerate}",
   },
 
@@ -48,12 +48,12 @@
   },
 
   "network": {
-    "format-wifi": "󰤢 {essid}",
+    "format-wifi": "󰤢 {essid} - {frequency}GHz",
     "format-ethernet": "󰈀 {essid}",
     "format-disconnected": "󰤠 ",
     "interval": 5,
     "tooltip-format": "{essid} ({signalStrength}%) - {ifname}",
-    "on-click": "nm-connection-editor",
+    "on-click": "control --wifi",
   },
 
   "cpu": {
@@ -85,6 +85,7 @@
     "format": "{icon}  {percent}%",
     "format-icons": ["", "󰃜", "󰃛", "󰃞", "󰃝", "󰃟", "󰃠"],
     "tooltip": false,
+    "on-click": "control --display",
   },
 
   "pulseaudio": {
@@ -93,7 +94,7 @@
     "format-icons": {
       "default": ["", "", " "],
     },
-    "on-click": "pavucontrol",
+    "on-click": "control --volume",
   },
 
   "battery": {
@@ -107,15 +108,10 @@
     "format-full": "{icon}  {capacity}%",
     "format-charging": " {capacity}%",
     "format-plugged": " {capacity}%",
-    "format-alt": "{icon} {time}",
+    // "format-alt": "{icon} {time}",
     // "format-good": "", // An empty format will hide the module
     // "format-full": "",
     "format-icons": ["", "", "", "", ""],
-  },
-
-  "custom/lock": {
-    "tooltip": false,
-    "on-click": "sh -c '(sleep 0s; hyprlock)' & disown",
-    "format": "",
+    "on-click": "control --battery",
   },
 }
