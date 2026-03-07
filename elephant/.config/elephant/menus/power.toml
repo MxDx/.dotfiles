@@ -1,0 +1,30 @@
+name = "power"
+name_pretty = "Power"
+icon = "system-shutdown"
+# optional default action; usually we define per-entry actions instead
+# action = "..."
+
+[[entries]]
+text = "Lock"
+icon = "system-lock-screen"
+actions = { "lock" = "hyprlock" }
+
+[[entries]]
+text = "Logout (Hyprland)"
+icon = "system-log-out"
+actions = { "logout" = "hyprctl dispatch exit" }
+
+[[entries]]
+text = "Suspend"
+icon = "system-suspend"
+actions = { "suspend" = "systemctl suspend" }
+
+[[entries]]
+text = "Reboot"
+icon = "system-reboot"
+actions = { "reboot" = "systemctl reboot" }
+
+[[entries]]
+text = "Shutdown"
+icon = "system-shutdown"
+actions = { "shutdown" = "systemctl poweroff" }

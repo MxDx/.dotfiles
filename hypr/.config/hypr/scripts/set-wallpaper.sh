@@ -7,7 +7,7 @@ TARGET_DIR="$HOME/.config/backgrounds"
 if [ -z "$1" ]; then
   # No file provided, look for default.*
   # We use a glob and an array to safely pick the first match
-  DEFAULTS=("$TARGET_DIR"/default.*)
+  DEFAULTS=("$TARGET_DIR"/default)
 
   if [ -e "${DEFAULTS[0]}" ]; then
     WALLPAPER="${DEFAULTS[0]}"
@@ -35,11 +35,11 @@ if swww img "$WALLPAPER" --transition-type grow --transition-pos center; then
     EXT="${WALLPAPER##*.}"
 
     # Remove old default files to prevent clutter (default.jpg, default.png, etc.)
-    rm -f "$TARGET_DIR"/default.*
+    rm -f "$TARGET_DIR"/default
 
     # Save new default
-    cp "$WALLPAPER" "$TARGET_DIR/default.$EXT"
-    echo "Saved as new default: default.$EXT"
+    cp "$WALLPAPER" "$TARGET_DIR/default"
+    echo "Saved as new default: default"
   fi
 else
   echo "Error: Could not set wallpaper. Is swww-daemon running?"
