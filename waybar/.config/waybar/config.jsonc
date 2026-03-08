@@ -4,8 +4,12 @@
   "margin-bottom": -10,
   "spacing": 0,
   "modules-left": ["hyprland/workspaces", "cpu", "memory"],
+  "modules-center": ["group/clock-music"],
 
-  "modules-center": ["clock", "custom/music"],
+  "group/clock-music": {
+    "orientation": "horizontal",
+    "modules": ["clock", "custom/music"],
+  },
 
   "modules-right": ["custom/notification", "bluetooth", "network", "pulseaudio", "backlight", "battery"],
 

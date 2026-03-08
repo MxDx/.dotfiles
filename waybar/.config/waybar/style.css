@@ -26,14 +26,19 @@
 #pulseaudio,
 #backlight,
 #network,
-#custom-lock,
-#custom-music,
+#clock-music,
 #custom-notification,
 #battery {
   background-color: @surface0;
   padding: 0.3rem 0.8rem;
   margin: 5px 0;
   transition: background-color 0.2s ease-in-out;
+}
+#workspaces,
+#cpu,
+#memory,
+#clock-music {
+  border-radius: 8px;
 }
 
 /* --- Left Modules (Individual Blocks) --- */
@@ -80,17 +85,15 @@
 
 /* --- Center Module (Clock) --- */
 #clock {
-  border-bottom-left-radius: 8px;
-  border-top-left-radius: 8px;
   color: @sky;
+}
+#clock,
+#custom-music {
   font-weight: bold;
+  background: transparent;
+  padding: 0 5px;
 }
 
-#custom-music {
-  border-bottom-right-radius: 8px;
-  border-top-right-radius: 8px;
-  font-weight: bold;
-}
 #tooltip {
   background: rgba(30, 30, 46, 0.9);
   border: 1px solid #cba6f7;
