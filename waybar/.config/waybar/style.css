@@ -28,6 +28,7 @@
 #network,
 #custom-lock,
 #custom-music,
+#custom-notification,
 #battery {
   background-color: @surface0;
   padding: 0.3rem 0.8rem;
@@ -104,11 +105,12 @@
 #backlight,
 #network,
 #custom-lock,
+#custom-notification,
 #battery {
   margin-right: 0;
 }
 
-#bluetooth {
+#custom-notification {
   border-top-left-radius: 8px;
   border-bottom-left-radius: 8px;
   color: @overlay2; /* Dimmed when off */
@@ -156,6 +158,7 @@
 #backlight:hover,
 #network:hover,
 #custom-lock:hover,
+#custom-notification:hover,
 #battery:hover {
   background-color: @surface1;
 }

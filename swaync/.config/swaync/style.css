@@ -1,0 +1,84 @@
+/* Import your Catppuccin palette */
+@import "../theme/theme.css";
+
+* {
+  font-family: "MesloLGS Nerd Font Mono Bold", "Symbols Nerd Font";
+  font-weight: bold;
+}
+
+.control-center {
+  background: @surface0;
+  /* border: 2px solid @mauve; */
+  border-radius: 12px;
+}
+
+/* Notifications area */
+.notification-row {
+  outline: none;
+  margin: 10px;
+  padding: 0;
+}
+
+.notification {
+  background: @surface0;
+  border: 1px solid @surface1;
+  border-radius: 8px;
+  color: @text;
+  padding: 10px;
+}
+
+/* Widgets General */
+.widget-title {
+  color: @mauve;
+  margin: 10px;
+}
+
+.widget-dnd {
+  color: @mauve;
+  margin: 10px;
+}
+
+/* Buttons Grid */
+.widget-buttons-grid {
+  margin: 6px;
+}
+
+.widget-buttons-grid > box > button {
+  background: @surface0;
+  border: 1px solid @surface1;
+  border-radius: 8px;
+  color: @blue;
+  margin: 5px;
+  padding: 10px;
+}
+
+.widget-buttons-grid > box > button:hover {
+  background: @surface1;
+  border: 1px solid @mauve;
+}
+
+/* Sliders (Volume & Backlight) */
+.widget-volume,
+.widget-backlight {
+  background: @surface0;
+  margin: 10px;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+/* This targets the slider bar itself */
+scale trough {
+  background-color: @surface1;
+  min-height: 8px;
+  border-radius: 4px;
+}
+
+scale highlight {
+  background-color: @mauve;
+  border-radius: 4px;
+}
+
+/* Labels */
+label {
+  color: @text;
+}
