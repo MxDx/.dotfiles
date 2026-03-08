@@ -1,7 +1,7 @@
 Name = "backgrounds"
 NamePretty = "Backgrounds"
 Icon = "preferences-desktop-wallpaper"
-Cache = false
+Cache = true
 SearchName = true
 Description = "Pick a background from ~/.config/backgrounds"
 
