@@ -3,7 +3,7 @@
   "position": "top",
   "margin-bottom": -10,
   "spacing": 0,
-  "modules-left": ["hyprland/workspaces", "cpu", "memory"],
+  "modules-left": ["hyprland/workspaces", "cpu", "memory", "custom/pbs"],
   "modules-center": ["group/clock-music"],
 
   "group/clock-music": {
@@ -19,6 +19,15 @@
       "active": "",
       "default": "",
     },
+  },
+
+  "custom/pbs": {
+    "format": "{}",
+    "return-type": "json",
+    "interval": 60, // Refresh every minute
+    "exec": "~/.config/waybar/scripts/pbs-status.sh",
+    "on-click": "kitty --hold sh -c 'journalctl -u pbs-backup-default.service -n 50 -f'", // Manual trigger
+    "tooltip": true,
   },
 
   "bluetooth": {

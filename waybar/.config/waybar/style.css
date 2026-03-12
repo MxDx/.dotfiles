@@ -28,6 +28,7 @@
 #network,
 #clock-music,
 #custom-notification,
+#custom-pbs,
 #battery {
   background-color: @surface0;
   padding: 0.3rem 0.8rem;
@@ -37,6 +38,7 @@
 #workspaces,
 #cpu,
 #memory,
+#custom-pbs,
 #clock-music {
   border-radius: 8px;
 }
@@ -162,8 +164,21 @@
 #network:hover,
 #custom-lock:hover,
 #custom-notification:hover,
+#custom-pbs:hover,
 #battery:hover {
   background-color: @surface1;
+}
+
+#custom-pbs.running {
+  color: #89b4fa; /* Blue */
+}
+
+#custom-pbs.success {
+  color: #a6e3a1; /* Green */
+}
+
+#custom-pbs.failed {
+  color: #f38ba8; /* Red */
 }
 
 /* --- Tooltip Styles --- */
