@@ -20,6 +20,11 @@ icon = "system-suspend"
 actions = { "suspend" = "systemctl suspend" }
 
 [[entries]]
+text = "Hibernate"
+icon = "system-hibernate"
+actions = { "hibernate" = "systemctl hibernate" }
+
+[[entries]]
 text = "Reboot"
 icon = "system-reboot"
 actions = { "reboot" = "systemctl reboot" }
