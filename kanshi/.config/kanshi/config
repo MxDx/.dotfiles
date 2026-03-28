@@ -1,18 +1,38 @@
+output DP-12 {
+    mode 2560x1440
+    position 0,0
+    alias $DELL_LEFT
+}
+
+output DP-10 {
+    mode 2560x1440
+    position 2560,0
+    alias $DELL_RIGHT
+}
+
+output eDP-2 {
+    mode 2560x1600
+    position 2560,1440
+    alias $LAPTOP
+}
+
 # PROFILE 1: All three screens (Laptop open)
-profile {
-    output DP-12 mode 2560x1440 position 0,0
-    output DP-10 mode 2560x1440 position 2560,0
-    output eDP-2 mode 2560x1600 position 2560,1440
+profile all {
+  output $DELL_LEFT enable
+  output $DELL_RIGHT enable
+  output $LAPTOP enable
 }
 
 # PROFILE 2: Closed Lid / Dual Monitor (Laptop disabled)
-profile {
-    output DP-12 mode 2560x1440 position 0,0
-    output DP-10 mode 2560x1440 position 2560,0
-    output eDP-2 disable
+profile no_laptop {
+  output $DELL_LEFT enable
+  output $DELL_RIGHT enable
+  output $LAPTOP disable
 }
 
 # PROFILE 3: Laptop only (On the go)
-profile {
-    output eDP-2 mode 2560x1600 position 0,0
+profile laptop_only {
+  output $DELL_LEFT disable
+  output $DELL_RIGHT disable
+  output $LAPTOP enable
 }
