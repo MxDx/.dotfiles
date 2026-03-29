@@ -8,7 +8,6 @@ TIMER="pbs-backup-default.timer"
 IS_RUNNING=$(systemctl is-active "$SERVICE")
 TIMER_INFO=$(systemctl list-timers "$TIMER" --no-legend)
 
-ACTIVE_STATE=$(systemctl show "$SERVICE" --property=ActiveState --value)
 EXIT_CODE=$(systemctl show "$SERVICE" --property=ExecMainStatus --value)
 
 START_TS=$(systemctl show "$SERVICE" --property=ExecMainStartTimestamp --value)
@@ -65,4 +64,7 @@ TOOLTIP+="⚙️ <b>Service:</b>   $SERVICE\n"
 TOOLTIP+=" <b>Status:</b>    $IS_RUNNING"
 
 # Output JSON for Waybar
-printf '{"text": "%s %s", "tooltip": "%s", "class": "%s"}\n' "$ICON" "$STATUS" "$TOOLTIP" "$CLASS"
+# printf '{"text": "%s %s", "tooltip": "%s", "class": "%s", "alt": "hello there"}\n' "$ICON" "$STATUS" "$TOOLTIP" "$CLASS"
+
+# Output JSON for ashell
+printf '{"text": "%s", "alt": "%s"}\n' "$STATUS" "$CLASS"

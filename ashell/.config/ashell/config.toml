@@ -1,0 +1,104 @@
+# Simple Ashell config to mimic your Waybar layout (2026-03-20)
+
+# --- Appearance: Catppuccin Mocha (from Ashell docs) ---
+log_level = "warn"
+position = "Top"
+layer = "Top"          # Waybar "top" maps closest to Ashell Layer "Top"
+outputs = "Active"     # show on the currently-focused monitor
+
+[appearance]
+style = "Islands"
+scale_factor = 1.15
+
+success_color = "#a6e3a1"
+text_color = "#cdd6f4"
+
+workspace_colors = [ "#fab387", "#b4befe", "#cba6f7" ]
+
+[appearance.primary_color]
+base = "#fab387"
+text = "#1e1e2e"
+
+[appearance.danger_color]
+base = "#f38ba8"
+weak = "#f9e2af"
+
+[appearance.background_color]
+base = "#1e1e2e"
+weak = "#313244"
+strong = "#45475a"
+
+[appearance.secondary_color]
+base = "#11111b"
+strong = "#1b1b25"
+
+[modules]
+# Waybar left: ["hyprland/workspaces", "cpu", "memory", "custom/pbs"]
+left = [ "Workspaces", "Updates", "SystemInfo" ]
+
+# Waybar center: group/clock-music -> ["clock", "custom/music"]
+# In Ashell, grouping is done by nested arrays:
+center = [ [ "Clock", "Music" ] ]
+
+# Waybar right: notification, bluetooth, network, pulseaudio, backlight, battery
+# In Ashell these live inside Settings indicators (and its menu).
+right = [ "Pbs", "Settings" ]
+# right = [ "Settings" ]
+
+# --- Workspaces ---
+[workspaces]
+visibility_mode = "MonitorSpecific"
+enable_workspace_filling = true
+disable_special_workspaces = true
+
+[clock]
+format = "%H:%M:%S  -  %d/%m"
+
+# We'll reference it as "Music" in modules via a custom module name to get closer to your label.
+# (If you prefer, you can just use "MediaPlayer" directly in the center group.)
+[[CustomModule]]
+name = "Music"
+type = "Button"
+icon = ""
+command = "playerctl play-pause"
+listen_cmd = "sh -c 'playerctl metadata --format=\"{\\\"text\\\": \\\"{{ artist }} - {{ title }}\\\", \\\"alt\\\": \\\"\\\"}\" -F 2>/dev/null'"
+
+
+# --- PBS custom status (Waybar custom/pbs) ---
+# Waybar exec every 60s; Ashell custom modules prefer a long-running listen_cmd.
+# Easiest simple approach: poll in a loop.
+[[CustomModule]]
+name = "Pbs"
+type = "Button"
+icon = "󰸞"  # default icon; will be overridden by icons map below
+command = "kitty --hold sh -c \"journalctl -u pbs-backup-default.service -n 50 -f\""
+listen_cmd= "sh -c '~/.config/waybar/scripts/pbs-status.sh; journalctl -u pbs-backup-default.service -f -n 0 --no-pager | while read -r _; do ~/.config/waybar/scripts/pbs-status.sh; done'"
+# # Swap icon based on alt (which we set to success/failed/running)
+icons.'^success$' = "󰸞"
+icons.'^running$' = "󱑓"
+icons.'^failed$'  = "󰅚"
+
+# Show the red alert dot when failed
+alert = "^failed$"
+
+# --- Settings module: controls/indicators for bluetooth/network/audio/brightness/battery ---
+[settings]
+# Keep the bar indicators ordered similarly to your waybar right side:
+indicators = ["IdleInhibitor", "PowerProfile", "Audio", "Bluetooth", "Network", "Vpn", "Battery", "PeripheralBattery"]
+# indicators = ["Bluetooth", "Network", "Audio", "Battery", "IdleInhibitor", "PowerProfile", "Vpn"]
+
+# Hook your "control --*" scripts like your waybar clicks (optional):
+audio_sinks_more_cmd = "control --volume"
+# audio_indicator_format = "IconAndPercentage"
+
+wifi_more_cmd = "control --wifi"
+bluetooth_more_cmd = "control --bluetooth"
+
+battery_format = "IconAndPercentage"
+peripheral_battery_format = "IconAndPercentage"
+
+audio_indicator_format = "IconAndPercentage"
+microphone_indicator_format = "IconAndPercentage"
+network_indicator_format = "IconAndPercentage"
+bluetooth_indicator_format = "IconAndValue"
+brightness_indicator_format = "IconAndPercentage"
