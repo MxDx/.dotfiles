@@ -34,15 +34,15 @@ strong = "#1b1b25"
 
 [modules]
 # Waybar left: ["hyprland/workspaces", "cpu", "memory", "custom/pbs"]
-left = [ "Workspaces", "Updates", "SystemInfo" ]
+left = [ "Workspaces", "SystemInfo" ]
 
 # Waybar center: group/clock-music -> ["clock", "custom/music"]
 # In Ashell, grouping is done by nested arrays:
-center = [ [ "Clock", "Music" ] ]
+center = [ "WindowTitle", [ "Clock", "MediaPlayer" ] ]
 
 # Waybar right: notification, bluetooth, network, pulseaudio, backlight, battery
 # In Ashell these live inside Settings indicators (and its menu).
-right = [ "Pbs", "Settings" ]
+right = [ "Pbs", "Updates", "Settings" ]
 # right = [ "Settings" ]
 
 # --- Workspaces ---
@@ -52,21 +52,13 @@ enable_workspace_filling = true
 disable_special_workspaces = true
 
 [clock]
-format = "%H:%M:%S  -  %d/%m"
+format = "%H:%M  -  %d/%m"
 
-# We'll reference it as "Music" in modules via a custom module name to get closer to your label.
-# (If you prefer, you can just use "MediaPlayer" directly in the center group.)
-[[CustomModule]]
-name = "Music"
-type = "Button"
-icon = ""
-command = "playerctl play-pause"
-listen_cmd = "sh -c 'playerctl metadata --format=\"{\\\"text\\\": \\\"{{ artist }} - {{ title }}\\\", \\\"alt\\\": \\\"\\\"}\" -F 2>/dev/null'"
-
+[window_title]
+mode = "Title"
+truncate_title_after_length = 100
 
 # --- PBS custom status (Waybar custom/pbs) ---
-# Waybar exec every 60s; Ashell custom modules prefer a long-running listen_cmd.
-# Easiest simple approach: poll in a loop.
 [[CustomModule]]
 name = "Pbs"
 type = "Button"
@@ -102,3 +94,9 @@ microphone_indicator_format = "IconAndPercentage"
 network_indicator_format = "IconAndPercentage"
 bluetooth_indicator_format = "IconAndValue"
 brightness_indicator_format = "IconAndPercentage"
+
+
+[updates]
+check_cmd = "yay -Qu"
+update_cmd = "kitty --hold yay"
+interval = 3600
