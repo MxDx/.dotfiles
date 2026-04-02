@@ -9,6 +9,7 @@ outputs = "Active"     # show on the currently-focused monitor
 [appearance]
 style = "Islands"
 scale_factor = 1.15
+font_name = "JetBrainsMono Nerd Font"
 
 success_color = "#a6e3a1"
 text_color = "#cdd6f4"
@@ -34,11 +35,10 @@ strong = "#1b1b25"
 
 [modules]
 # Waybar left: ["hyprland/workspaces", "cpu", "memory", "custom/pbs"]
-left = [ "Workspaces", "SystemInfo" ]
+left = [ "Workspaces", "SystemInfo", ["CpuTemp", "GpuTemp"] ]
 
-# Waybar center: group/clock-music -> ["clock", "custom/music"]
 # In Ashell, grouping is done by nested arrays:
-center = [ "WindowTitle", [ "Clock", "MediaPlayer" ] ]
+center = [ "WindowTitle", [ "Tempo", "MediaPlayer" ] ]
 
 # Waybar right: notification, bluetooth, network, pulseaudio, backlight, battery
 # In Ashell these live inside Settings indicators (and its menu).
@@ -51,8 +51,29 @@ visibility_mode = "MonitorSpecific"
 enable_workspace_filling = true
 disable_special_workspaces = true
 
-[clock]
-format = "%H:%M  -  %d/%m"
+[system_info]
+indicators = [ "Cpu", "Memory", "Temperature" ]
+interval = 5
+
+
+# --- Dedicated AMD GPU Temperature Module ---
+# Since System Info only handles one sensor, we use a Custom Module for the GPU
+[[CustomModule]]
+name = "GpuTemp"
+type = "Button"
+# This pulls the 'edge' temperature from your AMD GPU driver
+listen_cmd = "while true;do gpu-temp.sh; sleep 10; done"
+command = "amdgpu_top --gui"
+
+# --- CPU Custom Module ---
+[[CustomModule]]
+name = "CpuTemp"
+type = "Button"
+listen_cmd = "while true;do cpu-temp.sh; sleep 10; done"
+command = "kitty --hold btop"
+
+[tempo]
+clock_format = "%H:%M  -  %d/%m"
 
 [window_title]
 mode = "Title"
@@ -64,7 +85,7 @@ name = "Pbs"
 type = "Button"
 icon = "󰸞"  # default icon; will be overridden by icons map below
 command = "kitty --hold sh -c \"journalctl -u pbs-backup-default.service -n 50 -f\""
-listen_cmd= "sh -c '~/.config/waybar/scripts/pbs-status.sh; journalctl -u pbs-backup-default.service -f -n 0 --no-pager | while read -r _; do ~/.config/waybar/scripts/pbs-status.sh; done'"
+listen_cmd= "sh -c '~/.local/bin/pbs-status.sh; journalctl -u pbs-backup-default.service -f -n 0 --no-pager | while read -r _; do ~/.local/bin/pbs-status.sh; done'"
 # # Swap icon based on alt (which we set to success/failed/running)
 icons.'^success$' = "󰸞"
 icons.'^running$' = "󱑓"
