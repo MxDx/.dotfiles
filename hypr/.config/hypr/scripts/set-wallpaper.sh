@@ -24,8 +24,8 @@ fi
 # 3. Ensure target directory exists (for future saves)
 mkdir -p "$TARGET_DIR"
 
-# 4. Apply the wallpaper using swww
-if swww img "$WALLPAPER" --transition-type grow --transition-pos center; then
+# 4. Apply the wallpaper using awww
+if awww img "$WALLPAPER" --transition-type grow --transition-pos center; then
   echo "Wallpaper applied: $WALLPAPER"
 
   # 5. Only update default if a NEW wallpaper was provided
@@ -42,6 +42,6 @@ if swww img "$WALLPAPER" --transition-type grow --transition-pos center; then
     echo "Saved as new default: default"
   fi
 else
-  echo "Error: Could not set wallpaper. Is swww-daemon running?"
+  echo "Error: Could not set wallpaper. Is awww-daemon running?"
   exit 1
 fi
