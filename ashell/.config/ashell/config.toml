@@ -35,7 +35,7 @@ strong = "#1b1b25"
 
 [modules]
 # Waybar left: ["hyprland/workspaces", "cpu", "memory", "custom/pbs"]
-left = [ "Workspaces", "SystemInfo", ["CpuTemp", "GpuTemp"] ]
+left = [ "Workspaces", "PowerDraw", "SystemInfo", ["CpuTemp", "GpuTemp"] ]
 
 # In Ashell, grouping is done by nested arrays:
 center = [ "WindowTitle", [ "Tempo", "MediaPlayer" ] ]
@@ -51,6 +51,13 @@ visibility_mode = "MonitorSpecific"
 enable_workspace_filling = true
 disable_special_workspaces = true
 
+[[CustomModule]]
+name = "PowerDraw"
+type = "Button"
+listen_cmd = "sh -c 'while true; do ~/.local/bin/power-consumption.sh; sleep 10; done'"
+# Clicking shows detailed power stats
+command = "kitty --title 'Power Usage' sudo powertop"
+
 [system_info]
 indicators = [ "Cpu", "Memory", "Temperature" ]
 interval = 5
@@ -62,14 +69,14 @@ interval = 5
 name = "GpuTemp"
 type = "Button"
 # This pulls the 'edge' temperature from your AMD GPU driver
-listen_cmd = "while true;do gpu-temp.sh; sleep 10; done"
+listen_cmd = "sh -c 'while true;do ~/.local/bin/gpu-temp.sh; sleep 10; done'"
 command = "amdgpu_top --gui"
 
 # --- CPU Custom Module ---
 [[CustomModule]]
 name = "CpuTemp"
 type = "Button"
-listen_cmd = "while true;do cpu-temp.sh; sleep 10; done"
+listen_cmd = "sh -c 'while true;do ~/.local/bin/cpu-temp.sh; sleep 10; done'"
 command = "kitty --hold btop"
 
 [tempo]
@@ -108,7 +115,7 @@ wifi_more_cmd = "control --wifi"
 bluetooth_more_cmd = "control --bluetooth"
 
 battery_format = "IconAndPercentage"
-peripheral_battery_format = "IconAndPercentage"
+peripheral_battery_format = "Percentage"
 
 audio_indicator_format = "IconAndPercentage"
 microphone_indicator_format = "IconAndPercentage"
