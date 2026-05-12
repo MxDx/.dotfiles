@@ -19,15 +19,27 @@ require("lazy").setup({
 		-- 2. Import "Extras" (LSPs & Linters) with NO config needed
 		{ import = "lazyvim.plugins.extras.linting.eslint" }, -- Easy Linting!
 		{ import = "lazyvim.plugins.extras.formatting.prettier" },
-		{ import = "lazyvim.plugins.extras.ai.copilot" },
+		{
+			import = "lazyvim.plugins.extras.ai.copilot",
+			opts = {
+				-- Enable Copilot for all file types
+				filetypes = {
+					["*"] = true, -- Allow most things
+					["yaml"] = true, -- Explicitly allow yaml
+					["yaml.ansible"] = true, -- Explicitly allow the ansible subtype
+					help = false, -- Example: keep it off for help files
+					gitcommit = false,
+				},
+			},
+		},
 		{ import = "lazyvim.plugins.extras.editor.neo-tree" },
 		-- { import = "lazyvim.plugins.extras.editor.fzf" },
 		{ import = "lazyvim.plugins.extras.editor.telescope" },
-        { import = "lazyvim.plugins.extras.util.project" },
+		{ import = "lazyvim.plugins.extras.util.project" },
 
-        -- Language specific extras
-        { import = "lazyvim.plugins.extras.lang.python" },
-        -- { import = "lazyvim.plugins.extras.lang.markdown" },
+		-- Language specific extras
+		{ import = "lazyvim.plugins.extras.lang.python" },
+		-- { import = "lazyvim.plugins.extras.lang.markdown" },
 
 		-- 3. Import your local custom plugins
 		{ import = "plugins" },
