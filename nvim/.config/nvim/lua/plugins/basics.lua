@@ -130,7 +130,12 @@ return {
 						"encoding",
 						{
 							function()
-								return require("auto-session.lib").current_session_name(true)
+								local ok, persistence = pcall(require, "persistence")
+								if not ok then return "" end
+								local session = persistence.current()
+								if not session then return "" end
+								-- Show just the project folder name
+								return "󱞊 " .. vim.fn.fnamemodify(session, ":h:t")
 							end,
 						},
 						"fileformat",
@@ -172,6 +177,17 @@ return {
 				inactive_winbar = {},
 				extensions = {},
 			})
+		end,
+	},
+
+	{
+		"akinsho/bufferline.nvim",
+		opts = function(_, opts)
+			opts.options = opts.options or {}
+			-- Prevent neo-tree from appearing as a buffer tab
+			opts.options.custom_filter = function(buf_number)
+				return vim.bo[buf_number].filetype ~= "neo-tree"
+			end
 		end,
 	},
 

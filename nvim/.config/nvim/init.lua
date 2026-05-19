@@ -1,3 +1,5 @@
+require("vim-options")
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
 	vim.fn.system({
@@ -39,7 +41,6 @@ require("lazy").setup({
 
 		-- Language specific extras
 		{ import = "lazyvim.plugins.extras.lang.python" },
-		-- { import = "lazyvim.plugins.extras.lang.markdown" },
 
 		-- 3. Import your local custom plugins
 		{ import = "plugins" },

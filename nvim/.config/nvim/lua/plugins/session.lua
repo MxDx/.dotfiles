@@ -1,0 +1,39 @@
+return {
+	"folke/persistence.nvim",
+	opts = {
+		options = { "buffers", "curdir", "tabpages", "winsize", "help", "globals", "skiprtp" },
+	},
+	init = function()
+		-- Close neo-tree before saving the session so it doesn't pollute restored tabs
+		vim.api.nvim_create_autocmd("VimLeavePre", {
+			group = vim.api.nvim_create_augroup("PersistenceNeoTree", { clear = true }),
+			callback = function()
+				pcall(vim.cmd, "Neotree close")
+			end,
+		})
+
+		-- Auto-restore session when nvim is opened with no file arguments.
+		-- UIEnter fires after the UI and plugins are ready, preventing the
+		-- "first buffer has no colour" treesitter race condition.
+		vim.api.nvim_create_autocmd("UIEnter", {
+			group = vim.api.nvim_create_augroup("PersistenceAutoRestore", { clear = true }),
+			nested = true,
+			once = true,
+			callback = function()
+				if vim.fn.argc() == 0 then
+					vim.schedule(function()
+						require("persistence").load()
+						-- After the session loads, kick project.nvim detection for the
+						-- current buffer (it may have missed BufEnter during lazy-load).
+						vim.defer_fn(function()
+							local ok, project = pcall(require, "project_nvim.project")
+							if ok then
+								pcall(project.on_buf_enter)
+							end
+						end, 100)
+					end)
+				end
+			end,
+		})
+	end,
+}

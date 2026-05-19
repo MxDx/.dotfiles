@@ -297,3 +297,6 @@ function auto_venv() {
 }
 
 add-zsh-hook chpwd auto_venv
+
+# Generated for envman. Do not edit.
+[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
