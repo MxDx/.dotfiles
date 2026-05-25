@@ -4,7 +4,7 @@
 log_level = "warn"
 position = "Top"
 layer = "Top"          # Waybar "top" maps closest to Ashell Layer "Top"
-outputs = "Active"     # show on the currently-focused monitor
+outputs = "All"
 
 [appearance]
 style = "Islands"
