@@ -1,0 +1,15 @@
+[Unit]
+Description=Ashell Status Bar
+After=graphical-session.target
+
+[Service]
+Environment=ICED_BACKEND=tiny-skia
+ExecStart=/usr/bin/ashell
+Restart=always
+RestartSec=1
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ashell
+
+[Install]
+WantedBy=default.target
