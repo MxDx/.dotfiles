@@ -188,7 +188,7 @@ C_BORDER = 6
 
 HELP = (
     " [j/k] nav  [tab] pane  [→/enter] items  [←/esc] back"
-    "  [i] install  [a] all  [s] stow  [r] refresh  [L] logs  [q] quit"
+    "  [i] install  [a] all  [s] stow  [n] add  [r] refresh  [L] logs  [q] quit"
 )
 
 
@@ -495,6 +495,97 @@ class App:
             self.loglines = lines
             self.last_log = ""
 
+    # ── add forms (temporarily suspend curses) ────────────────────────────────
+
+    def _prompt(self, label: str, default: str = "") -> str:
+        """Readline prompt shown while curses is suspended."""
+        hint = f" [{default}]" if default else ""
+        try:
+            val = input(f"  {label}{hint}: ").strip()
+            return val if val else default
+        except (EOFError, KeyboardInterrupt):
+            raise
+
+    def _resume_curses(self):
+        """Restore the curses display after a form."""
+        self.scr.clear()
+        self.scr.refresh()
+
+    def _add_new_category(self):
+        curses.endwin()
+        print("\n  ── Add new category " + "─" * 40)
+        print("  (Ctrl+C to cancel)\n")
+        try:
+            cat_id = self._prompt("id (lowercase, no spaces)").lower().replace(" ", "_")
+            if not cat_id:
+                print("  Cancelled — id is required.")
+                input("  Press Enter…")
+                self._resume_curses()
+                return
+            label = self._prompt("label (display name)", cat_id)
+            stow  = self._prompt("stow packages (space-separated, blank=none)", "")
+        except (EOFError, KeyboardInterrupt):
+            print("\n  Cancelled.")
+            input("  Press Enter…")
+            self._resume_curses()
+            return
+
+        line = f'\nregister_category {cat_id} "{label}" "{stow}"\n'
+        with open(CATALOG, "a") as f:
+            f.write(line)
+
+        print(f"\n  ✓ Added category '{cat_id}' to {CATALOG}")
+        input("  Press Enter to continue…")
+        self._resume_curses()
+        self._bg(self._load_cats)
+
+    def _add_new_dep(self, cat_id: str):
+        curses.endwin()
+        print(f"\n  ── Add new dependency  (category: {cat_id}) " + "─" * 30)
+        print("  (Ctrl+C to cancel)\n")
+        try:
+            dep_id = self._prompt("id (lowercase, no spaces)").lower().replace(" ", "_")
+            if not dep_id:
+                print("  Cancelled — id is required.")
+                input("  Press Enter…")
+                self._resume_curses()
+                return
+            label   = self._prompt("label (display name)", dep_id)
+            print("  kind options:  cmd · path · shell · package")
+            print("    cmd     — check command exists (check = cmd name)")
+            print("    path    — check file/dir exists (check = path)")
+            print("    shell   — run bash expression (check = shell expr)")
+            print("    package — distro package (install = apt_pkg|arch_pkg)")
+            kind    = self._prompt("kind", "cmd")
+            check   = self._prompt("check  (cmd / path / shell expr)")
+            if kind == "package":
+                install = self._prompt("install  apt_pkg|arch_pkg")
+            else:
+                install = self._prompt("install  (bash command, blank=manual)")
+            note    = self._prompt("note   (short description, optional)", "")
+        except (EOFError, KeyboardInterrupt):
+            print("\n  Cancelled.")
+            input("  Press Enter…")
+            self._resume_curses()
+            return
+
+        # Quote fields that may contain spaces
+        def q(s):
+            return shlex.quote(s) if s else '""'
+
+        line = (
+            f'\nregister_dep {cat_id} {dep_id} {q(label)} {kind} '
+            f'{q(check)} {q(install)} {q(note)}\n'
+        )
+        with open(CATALOG, "a") as f:
+            f.write(line)
+
+        print(f"\n  ✓ Added dep '{dep_id}' to category '{cat_id}'")
+        print(f"  in {CATALOG}")
+        input("  Press Enter to continue…")
+        self._resume_curses()
+        self._bg(self._load_items_for_sel)
+
     # ── input ─────────────────────────────────────────────────────────────────
 
     def _cur_cat_id(self):
@@ -535,6 +626,8 @@ class App:
                 self.focus = 1
             elif key == ord('r'):
                 self._bg(self._load_cats)
+            elif key == ord('n'):
+                self._add_new_category()
             elif key == ord('a'):
                 cat_id = self._cur_cat_id()
                 if cat_id:
@@ -553,6 +646,10 @@ class App:
                 self._bg(self._load_details_for_sel)
             elif key in (27, curses.KEY_LEFT):
                 self.focus = 0
+            elif key == ord('n'):
+                cat_id = self._cur_cat_id()
+                if cat_id:
+                    self._add_new_dep(cat_id)
             elif key == ord('i'):
                 item_id = self._cur_item_id()
                 if item_id:

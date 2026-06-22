@@ -1,14 +1,44 @@
 # Dotfiles
-## Setup 
-The setup.sh install the different dependencies, but only for debian (apt needed)
-The link_setup.sh is for the different symlink creation
 
-### nvim
-The nvim config use a git with all the config but depend on the different 
-dependencies which are specified in the README of the git, there is a script in the docs
-folder but it does not seems to work
+Managed with [GNU Stow](https://www.gnu.org/software/stow/).
 
-### zsh
-The zsh setup use oh-my-zsh and different plugins that need to be install if 
-at the start of zsh it does not find the plugins. The exa packages make the beautifull icons but 
-I don't know how it is setup, it works some time ;)...
+## Quick start
+
+```bash
+git clone https://github.com/MxDx/.dotfiles ~/.dotfiles
+cd ~/.dotfiles
+bash bootstrap.sh   # install packages + stow all configs
+```
+
+## dotdeps — dependency dashboard
+
+Interactive TUI to browse, install and stow all tracked dependencies:
+
+```bash
+dotdeps
+```
+
+- `j/k` navigate · `Tab` switch pane · `→/Enter` open category · `←/Esc` back
+- `i` install item · `a` install all in category · `s` stow · `n` add new dep · `r` refresh · `L` show logs · `q` quit
+
+Logs are written to `~/.config/dotdeps/logs/` — share them when reporting issues.
+
+## Adding a dependency
+
+Press `n` inside dotdeps, or edit `~/.config/dotdeps/catalog.sh` directly
+(symlinked from `dotdeps/.config/dotdeps/catalog.sh` in this repo).
+
+## Stow packages
+
+| Package   | Stows to              |
+|-----------|-----------------------|
+| atuin     | `~/.config/atuin/`    |
+| bin       | `~/.local/bin/`       |
+| dotdeps   | `~/.config/dotdeps/`  |
+| hypr      | `~/.config/hypr/`     |
+| nvim      | `~/.config/nvim/`     |
+| p10k      | `~/.p10k.zsh`         |
+| posting   | `~/.config/posting/`  |
+| tmux      | `~/.tmux.conf`        |
+| zshrc     | `~/.zshrc`            |
+

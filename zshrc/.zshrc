@@ -174,10 +174,6 @@ cjq() {
 }
 
 
-# For local aliases
-if [ -f ~/.zsh_local ]; then
-  source ~/.zsh_local
-fi
 
 
 bindkey "^H" backward-delete-word
@@ -300,3 +296,13 @@ add-zsh-hook chpwd auto_venv
 
 # Generated for envman. Do not edit.
 [ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /usr/bin/hcp hcp
+
+
+# For local aliases
+if [ -f ~/.zsh_local ]; then
+  source ~/.zsh_local
+fi
+
