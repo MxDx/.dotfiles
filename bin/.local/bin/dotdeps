@@ -3,13 +3,14 @@
 
 import curses
 import os
+import re
 import shlex
 import subprocess
 import sys
 import threading
 from datetime import datetime
 
-# ── Repo detection ────────────────────────────────────────────────────────────
+# ── Repo / catalog detection ──────────────────────────────────────────────────
 
 def _find_root(start: str):
     d = os.path.realpath(start)
@@ -26,13 +27,13 @@ LOG_DIR     = os.path.join(HOME_DIR, ".config", "dotdeps", "logs")
 
 
 def _find_catalog(root: str) -> str:
-    for candidate in [
+    for c in [
         os.path.join(HOME_DIR, ".config", "dotdeps", "catalog.sh"),
         os.path.join(root, "dotdeps", ".config", "dotdeps", "catalog.sh"),
         os.path.join(root, "deps", "catalog.sh"),
     ]:
-        if os.path.isfile(candidate):
-            return candidate
+        if os.path.isfile(c):
+            return c
     return ""
 
 
@@ -135,46 +136,122 @@ def fetch_items(cat_id: str):
 def fetch_details(item_id: str) -> str:
     return _bash(f"dep_render_item {shlex.quote(item_id)}")
 
+
+def fetch_raw_item(item_id: str) -> dict:
+    raw   = _bash(f"dep_raw_item {shlex.quote(item_id)}")
+    parts = raw.split("\t")
+    keys  = ["label", "kind", "check", "install", "note", "cat"]
+    return {k: (parts[i] if i < len(parts) else "") for i, k in enumerate(keys)}
+
+
+def fetch_raw_category(cat_id: str) -> dict:
+    raw   = _bash(f"dep_raw_category {shlex.quote(cat_id)}")
+    parts = raw.split("\t")
+    return {"label": parts[0] if parts else "", "stow": parts[1] if len(parts) > 1 else ""}
+
+# ── Catalog file editor ───────────────────────────────────────────────────────
+
+def _q(s: str) -> str:
+    """Quote a value for use in catalog.sh — prefer single quotes for readability."""
+    if not s:
+        return '""'
+    if re.match(r'^[a-zA-Z0-9_./@:+-]+$', s):
+        return f'"{s}"'
+    if "'" not in s:
+        return f"'{s}'"
+    return shlex.quote(s)
+
+
+def _make_dep_line(cat_id, dep_id, label, kind, check, install, note) -> str:
+    return (
+        f"register_dep {cat_id} {dep_id} {_q(label)} {kind} "
+        f"{_q(check)} {_q(install)} {_q(note)}\n"
+    )
+
+
+def _make_cat_line(cat_id, label, stow) -> str:
+    return f"register_category {cat_id} {_q(label)} {_q(stow)}\n"
+
+
+def _catalog_lines() -> list:
+    with open(CATALOG) as f:
+        return f.readlines()
+
+
+def _catalog_write(lines: list):
+    with open(CATALOG, "w") as f:
+        f.writelines(lines)
+
+
+def _catalog_find_dep(cat_id: str, dep_id: str) -> int:
+    pat = re.compile(rf"^\s*register_dep\s+{re.escape(cat_id)}\s+{re.escape(dep_id)}\s+")
+    for i, line in enumerate(_catalog_lines()):
+        if pat.match(line):
+            return i
+    return -1
+
+
+def _catalog_find_cat(cat_id: str) -> int:
+    pat = re.compile(rf"^\s*register_category\s+{re.escape(cat_id)}\s+")
+    for i, line in enumerate(_catalog_lines()):
+        if pat.match(line):
+            return i
+    return -1
+
+
+def _catalog_replace(idx: int, new_line: str):
+    lines = _catalog_lines()
+    lines[idx] = new_line
+    _catalog_write(lines)
+
+
+def _catalog_delete_dep(cat_id: str, dep_id: str):
+    pat = re.compile(rf"^\s*register_dep\s+{re.escape(cat_id)}\s+{re.escape(dep_id)}\s+")
+    lines = [l for l in _catalog_lines() if not pat.match(l)]
+    _catalog_write(lines)
+
+
+def _catalog_delete_cat(cat_id: str):
+    cat_pat = re.compile(rf"^\s*register_category\s+{re.escape(cat_id)}\s+")
+    dep_pat = re.compile(rf"^\s*register_dep\s+{re.escape(cat_id)}\s+")
+    lines = [l for l in _catalog_lines() if not cat_pat.match(l) and not dep_pat.match(l)]
+    _catalog_write(lines)
+
+
+def _catalog_append(text: str):
+    with open(CATALOG, "a") as f:
+        f.write(text)
+
 # ── Stow check (pre-curses) ───────────────────────────────────────────────────
 
 def _pre_flight():
-    bin_path = os.path.join(HOME_DIR, ".local", "bin", "dotdeps")
-    is_link      = os.path.islink(bin_path)
-    points_here  = is_link and os.path.realpath(bin_path) == SCRIPT_PATH
+    checks = [
+        (
+            os.path.join(HOME_DIR, ".local", "bin", "dotdeps"),
+            "bin",
+            "bin package not stowed",
+        ),
+        (
+            os.path.join(HOME_DIR, ".config", "dotdeps", "catalog.sh"),
+            "dotdeps",
+            "dotdeps package not stowed",
+        ),
+    ]
+    for path, pkg, reason in checks:
+        if not os.path.islink(path):
+            print(f"\n  dotdeps: {path} is not a symlink ({reason})")
+            try:
+                resp = input(f"  Stow the '{pkg}' package now? [Y/n] ").strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                resp = "n"
+            if resp in ("", "y", "yes"):
+                rc = subprocess.run(
+                    ["stow", "-d", ROOT_DIR, "-t", HOME_DIR, "-R", pkg],
+                ).returncode
+                print(f"  {'✓ Done' if rc == 0 else '✗ Failed — continuing anyway'}")
+                input("  Press Enter to continue…")
 
-    if not is_link or not points_here:
-        if is_link:
-            status = f"symlink → {os.readlink(bin_path)!r} (not this repo)"
-        else:
-            status = "not a symlink (bin package not stowed)"
-        print(f"\n  dotdeps: {bin_path} is {status}")
-        try:
-            resp = input("  Stow the bin package now? [Y/n] ").strip().lower()
-        except (EOFError, KeyboardInterrupt):
-            resp = "n"
-        if resp in ("", "y", "yes"):
-            rc = subprocess.run(
-                ["stow", "-d", ROOT_DIR, "-t", HOME_DIR, "-R", "bin"],
-            ).returncode
-            print(f"  {'✓ Stowed successfully' if rc == 0 else '✗ Stow failed — continuing anyway'}")
-            input("  Press Enter to continue…")
-
-    # Also check dotdeps config package
-    cfg_path = os.path.join(HOME_DIR, ".config", "dotdeps", "catalog.sh")
-    if not os.path.islink(cfg_path):
-        print(f"\n  dotdeps: {cfg_path} is not a symlink (dotdeps package not stowed)")
-        try:
-            resp = input("  Stow the dotdeps package now? [Y/n] ").strip().lower()
-        except (EOFError, KeyboardInterrupt):
-            resp = "n"
-        if resp in ("", "y", "yes"):
-            rc = subprocess.run(
-                ["stow", "-d", ROOT_DIR, "-t", HOME_DIR, "-R", "dotdeps"],
-            ).returncode
-            print(f"  {'✓ Stowed successfully' if rc == 0 else '✗ Stow failed — continuing anyway'}")
-            input("  Press Enter to continue…")
-
-# ── Color constants ───────────────────────────────────────────────────────────
+# ── Color pairs ───────────────────────────────────────────────────────────────
 
 C_NORMAL = 0
 C_GREEN  = 1
@@ -184,34 +261,162 @@ C_CYAN   = 4
 C_SEL    = 5
 C_BORDER = 6
 
-# ── App ───────────────────────────────────────────────────────────────────────
+# ── Modal (inline form / confirm) ─────────────────────────────────────────────
+
+# Field spec: (label, key, hint)
+# hint = ""              → plain text input
+# hint = "hint text"     → shows hint in grey next to label
+# hint = "choice:a|b|c"  → cycle with space/left/right, type first letter
+
+class Modal:
+    """Blocking inline curses form. Call run() → dict or None."""
+
+    def __init__(self, scr, title: str, fields: list, defaults: dict = None):
+        self.scr    = scr
+        self.title  = title
+        self.fields = fields
+        self.vals   = {f[1]: (defaults or {}).get(f[1], "") for f in fields}
+        self.idx    = 0
+
+    def run(self) -> dict | None:
+        curses.curs_set(1)
+        result = None
+        try:
+            while True:
+                self._draw()
+                key = self.scr.getch()
+                done, ok = self._handle(key)
+                if done:
+                    result = self.vals if ok else None
+                    break
+        finally:
+            curses.curs_set(0)
+        return result
+
+    def _draw(self):
+        H, W = self.scr.getmaxyx()
+        n      = len(self.fields)
+        form_h = n * 3 + 5
+        form_w = min(W - 4, 74)
+        y0     = max(1, (H - form_h) // 2)
+        x0     = max(1, (W - form_w) // 2)
+
+        win = curses.newwin(form_h, form_w, y0, x0)
+        win.erase()
+        bc = curses.color_pair(C_BORDER)
+        win.attron(bc); win.box(); win.attroff(bc)
+        win.addstr(0, 2, f" {self.title} ", bc | curses.A_BOLD)
+
+        field_w = form_w - 4
+
+        for i, (label, key, hint) in enumerate(self.fields):
+            row = i * 3 + 1
+            sel = i == self.idx
+            val = self.vals[key]
+
+            lab_attr = (curses.color_pair(C_CYAN) | curses.A_BOLD) if sel else curses.color_pair(C_CYAN)
+
+            if hint.startswith("choice:"):
+                choices = hint[7:].split("|")
+                parts   = [f"[{c}]" if c == val else c for c in choices]
+                lab_txt = f"{label}:  " + "  ".join(parts)
+                try:
+                    win.addstr(row, 2, lab_txt[:field_w], lab_attr)
+                except curses.error:
+                    pass
+                # Value row shows selected option highlighted
+                try:
+                    win.addstr(row + 1, 2, val.ljust(field_w),
+                               curses.color_pair(C_SEL) if sel else curses.color_pair(C_YELLOW))
+                except curses.error:
+                    pass
+            else:
+                lab_txt = f"{label}:"
+                if hint:
+                    lab_txt += f"  ({hint})"
+                try:
+                    win.addstr(row, 2, lab_txt[:field_w], lab_attr)
+                except curses.error:
+                    pass
+                display = val[-(field_w):] if len(val) >= field_w else val
+                val_attr = curses.color_pair(C_SEL) if sel else curses.A_UNDERLINE
+                try:
+                    win.addstr(row + 1, 2, display.ljust(field_w), val_attr)
+                except curses.error:
+                    pass
+                if sel:
+                    cx = min(len(display), field_w - 1)
+                    try:
+                        win.move(row + 1, 2 + cx)
+                    except curses.error:
+                        pass
+
+        footer = " ↑/↓ · Tab next · Enter confirm · Esc cancel "
+        try:
+            win.addstr(form_h - 2, 2, footer[:form_w - 4], curses.color_pair(C_CYAN))
+        except curses.error:
+            pass
+        win.refresh()
+
+    def _handle(self, key):
+        _, fkey, fhint = self.fields[self.idx]
+        val = self.vals[fkey]
+
+        if key == 27:  # Esc
+            return True, False
+        elif key in (curses.KEY_ENTER, 10, 13):
+            if self.idx == len(self.fields) - 1:
+                return True, True
+            self.idx += 1
+        elif key in (ord('\t'), curses.KEY_DOWN):
+            self.idx = (self.idx + 1) % len(self.fields)
+        elif key == curses.KEY_UP:
+            self.idx = (self.idx - 1) % len(self.fields)
+        elif key in (curses.KEY_BACKSPACE, 127, 8):
+            self.vals[fkey] = val[:-1]
+        elif fhint.startswith("choice:"):
+            choices = fhint[7:].split("|")
+            cur = choices.index(val) if val in choices else 0
+            if key in (ord(' '), curses.KEY_RIGHT):
+                self.vals[fkey] = choices[(cur + 1) % len(choices)]
+            elif key == curses.KEY_LEFT:
+                self.vals[fkey] = choices[(cur - 1) % len(choices)]
+            elif 32 <= key <= 126:
+                ch = chr(key).lower()
+                for c in choices:
+                    if c.lower().startswith(ch):
+                        self.vals[fkey] = c
+                        break
+        elif 32 <= key <= 126:
+            self.vals[fkey] = val + chr(key)
+
+        return False, False
+
 
 HELP = (
     " [j/k] nav  [tab] pane  [→/enter] items  [←/esc] back"
-    "  [i] install  [a] all  [s] stow  [n] add  [r] refresh  [L] logs  [q] quit"
+    "  [n] add  [e] edit  [d] delete  [i] install  [a] all  [s] stow  [r] refresh  [L] logs  [q] quit"
 )
 
+# ── App ───────────────────────────────────────────────────────────────────────
 
 class App:
     def __init__(self, stdscr):
         self.scr  = stdscr
         self.lock = threading.Lock()
 
-        # data
         self.cats     = []
         self.items    = []
         self.details  = ""
         self.loglines = []
-        self.last_log = ""   # path of last written log file
+        self.last_log = ""
 
-        # navigation
-        self.focus      = 0   # 0=cats  1=items
-        self.cat_sel    = 0
-        self.cat_scroll = 0
+        self.focus       = 0
+        self.cat_sel     = 0
+        self.cat_scroll  = 0
         self.item_sel    = 0
         self.item_scroll = 0
 
-        # state
         self.status = "Loading…"
         self.busy   = False
 
@@ -248,9 +453,7 @@ class App:
     def _box(self, win, title="", active=False):
         win.erase()
         bc = curses.color_pair(C_BORDER if active else C_NORMAL)
-        win.attron(bc)
-        win.box()
-        win.attroff(bc)
+        win.attron(bc); win.box(); win.attroff(bc)
         if title:
             win.addstr(0, 2, f" {title} ", bc | curses.A_BOLD)
 
@@ -280,13 +483,11 @@ class App:
 
         for i, cat in enumerate(cats[self.cat_scroll: self.cat_scroll + inner]):
             abs_i  = i + self.cat_scroll
-            label  = cat["label"]
-            counts = cat["counts"]
             sel    = abs_i == self.cat_sel
             cursor = "▸ " if (active and sel) else "  "
-            row    = f"{cursor}{label:<20} {counts:>5}"
-            attr   = curses.color_pair(C_SEL) if sel else 0
-            self._addstr(self.w_cats, i + 1, 1, row[:W - 2].ljust(W - 2), attr)
+            row    = f"{cursor}{cat['label']:<20} {cat['counts']:>5}"
+            self._addstr(self.w_cats, i + 1, 1, row[:W - 2].ljust(W - 2),
+                         curses.color_pair(C_SEL) if sel else 0)
 
         self.w_cats.noutrefresh()
 
@@ -309,16 +510,14 @@ class App:
             self.item_scroll = self.item_sel - inner + 1
 
         for i, item in enumerate(items[self.item_scroll: self.item_scroll + inner]):
-            abs_i = i + self.item_scroll
-            ok    = item["status"] == "✓"
-            icon  = "✓" if ok else "✗"
-            icol  = curses.color_pair(C_GREEN) if ok else curses.color_pair(C_RED)
-            sel   = abs_i == self.item_sel
-            attr  = curses.color_pair(C_SEL) if sel else 0
+            abs_i  = i + self.item_scroll
+            ok     = item["status"] == "✓"
+            icon   = "✓" if ok else "✗"
+            icol   = curses.color_pair(C_GREEN) if ok else curses.color_pair(C_RED)
+            sel    = abs_i == self.item_sel
+            attr   = curses.color_pair(C_SEL) if sel else 0
             cursor = "▸" if (active and sel) else " "
-            label  = item["label"][:18]
-            note   = item["note"][:24]
-            rest   = f"  {label:<18}  {note}"
+            rest   = f"  {item['label'][:18]:<18}  {item['note'][:24]}"
 
             self._addstr(self.w_items, i + 1, 1, cursor, attr)
             self._addstr(self.w_items, i + 1, 2, icon + " ", icol | attr)
@@ -332,7 +531,6 @@ class App:
             details  = self.details
             last_log = self.last_log
 
-        # decide panel title
         if loglines:
             log_ref = f" · {os.path.basename(last_log)}" if last_log else ""
             title   = f"Log{log_ref}"
@@ -343,9 +541,8 @@ class App:
         H, W = self.w_log.getmaxyx()
         inner = H - 2
 
-        lines = (loglines if loglines else details.splitlines())
+        lines = loglines if loglines else details.splitlines()
         tail  = lines[-inner:] if len(lines) > inner else lines
-
         for i, line in enumerate(tail[:inner]):
             self._addstr(self.w_log, i + 1, 2, line[:W - 4])
 
@@ -373,6 +570,60 @@ class App:
         self._draw_bar()
         self._draw_help()
         curses.doupdate()
+
+    # ── modal helpers ─────────────────────────────────────────────────────────
+
+    def _run_modal(self, modal: Modal) -> dict | None:
+        """Run a Modal with blocking input, restore non-blocking after."""
+        self.scr.nodelay(False)
+        result = modal.run()
+        self.scr.nodelay(True)
+        self.scr.clear()
+        return result
+
+    def _confirm(self, msg: str, danger=True) -> bool:
+        """Inline yes/no dialog. Defaults to No."""
+        H, W = self.scr.getmaxyx()
+        w  = min(W - 6, max(len(msg) + 8, 44))
+        h  = 6
+        y  = max(1, (H - h) // 2)
+        x  = max(1, (W - w) // 2)
+        win = curses.newwin(h, w, y, x)
+        sel = False  # False=No (default), True=Yes
+
+        self.scr.nodelay(False)
+        try:
+            while True:
+                win.erase()
+                bc = curses.color_pair(C_RED if danger else C_BORDER)
+                win.attron(bc); win.box(); win.attroff(bc)
+                win.addstr(0, 2, " Confirm ", bc | curses.A_BOLD)
+                try:
+                    win.addstr(2, 2, msg[:w - 4])
+                except curses.error:
+                    pass
+                mid = w // 2
+                yes_a = (curses.color_pair(C_SEL) | curses.A_BOLD) if sel else curses.color_pair(C_RED)
+                no_a  = (curses.color_pair(C_SEL) | curses.A_BOLD) if not sel else 0
+                try:
+                    win.addstr(4, mid - 9, " [Yes] ", yes_a)
+                    win.addstr(4, mid + 1, " [No]  ", no_a)
+                except curses.error:
+                    pass
+                win.refresh()
+
+                key = self.scr.getch()
+                if key in (ord('y'), ord('Y')):
+                    return True
+                elif key in (ord('n'), ord('N'), 27):
+                    return False
+                elif key in (curses.KEY_LEFT, curses.KEY_RIGHT, ord('\t')):
+                    sel = not sel
+                elif key in (curses.KEY_ENTER, 10, 13):
+                    return sel
+        finally:
+            self.scr.nodelay(True)
+            self.scr.clear()
 
     # ── background jobs ───────────────────────────────────────────────────────
 
@@ -419,13 +670,14 @@ class App:
             sel   = self.item_sel
         if not items or sel >= len(items):
             with self.lock:
-                self.details = ""
+                self.details  = ""
+                self.loglines = []
             return
         item_id = items[sel]["id"]
         details = fetch_details(item_id)
         with self.lock:
             self.details  = details
-            self.loglines = []   # clear log when browsing
+            self.loglines = []
 
     def _do_install_item(self, item_id: str):
         log_path = _new_log_path(f"install_{item_id}")
@@ -485,7 +737,6 @@ class App:
             self.status = f"{result}: stow {cat_id}  · log: {os.path.basename(log_path)}"
 
     def _open_logs_dir(self):
-        """Show log files list in the log pane."""
         try:
             files = sorted(os.listdir(LOG_DIR), reverse=True)[:30]
         except FileNotFoundError:
@@ -495,98 +746,107 @@ class App:
             self.loglines = lines
             self.last_log = ""
 
-    # ── add forms (temporarily suspend curses) ────────────────────────────────
+    # ── add / edit / delete ───────────────────────────────────────────────────
 
-    def _prompt(self, label: str, default: str = "") -> str:
-        """Readline prompt shown while curses is suspended."""
-        hint = f" [{default}]" if default else ""
-        try:
-            val = input(f"  {label}{hint}: ").strip()
-            return val if val else default
-        except (EOFError, KeyboardInterrupt):
-            raise
-
-    def _resume_curses(self):
-        """Restore the curses display after a form."""
-        self.scr.clear()
-        self.scr.refresh()
-
-    def _add_new_category(self):
-        curses.endwin()
-        print("\n  ── Add new category " + "─" * 40)
-        print("  (Ctrl+C to cancel)\n")
-        try:
-            cat_id = self._prompt("id (lowercase, no spaces)").lower().replace(" ", "_")
-            if not cat_id:
-                print("  Cancelled — id is required.")
-                input("  Press Enter…")
-                self._resume_curses()
-                return
-            label = self._prompt("label (display name)", cat_id)
-            stow  = self._prompt("stow packages (space-separated, blank=none)", "")
-        except (EOFError, KeyboardInterrupt):
-            print("\n  Cancelled.")
-            input("  Press Enter…")
-            self._resume_curses()
+    def _add_category(self):
+        fields = [
+            ("id",    "id",    "lowercase, no spaces"),
+            ("label", "label", "display name"),
+            ("stow",  "stow",  "space-separated stow packages, or blank"),
+        ]
+        vals = self._run_modal(Modal(self.scr, "Add category", fields))
+        if not vals or not vals["id"]:
             return
-
-        line = f'\nregister_category {cat_id} "{label}" "{stow}"\n'
-        with open(CATALOG, "a") as f:
-            f.write(line)
-
-        print(f"\n  ✓ Added category '{cat_id}' to {CATALOG}")
-        input("  Press Enter to continue…")
-        self._resume_curses()
+        cat_id = vals["id"].lower().replace(" ", "_")
+        _catalog_append(f"\n{_make_cat_line(cat_id, vals['label'], vals['stow'])}")
+        with self.lock:
+            self.status = f"✓ Added category '{cat_id}'"
         self._bg(self._load_cats)
 
-    def _add_new_dep(self, cat_id: str):
-        curses.endwin()
-        print(f"\n  ── Add new dependency  (category: {cat_id}) " + "─" * 30)
-        print("  (Ctrl+C to cancel)\n")
-        try:
-            dep_id = self._prompt("id (lowercase, no spaces)").lower().replace(" ", "_")
-            if not dep_id:
-                print("  Cancelled — id is required.")
-                input("  Press Enter…")
-                self._resume_curses()
-                return
-            label   = self._prompt("label (display name)", dep_id)
-            print("  kind options:  cmd · path · shell · package")
-            print("    cmd     — check command exists (check = cmd name)")
-            print("    path    — check file/dir exists (check = path)")
-            print("    shell   — run bash expression (check = shell expr)")
-            print("    package — distro package (install = apt_pkg|arch_pkg)")
-            kind    = self._prompt("kind", "cmd")
-            check   = self._prompt("check  (cmd / path / shell expr)")
-            if kind == "package":
-                install = self._prompt("install  apt_pkg|arch_pkg")
-            else:
-                install = self._prompt("install  (bash command, blank=manual)")
-            note    = self._prompt("note   (short description, optional)", "")
-        except (EOFError, KeyboardInterrupt):
-            print("\n  Cancelled.")
-            input("  Press Enter…")
-            self._resume_curses()
+    def _edit_category(self, cat_id: str):
+        raw = fetch_raw_category(cat_id)
+        fields = [
+            ("label", "label", "display name"),
+            ("stow",  "stow",  "space-separated stow packages, or blank"),
+        ]
+        vals = self._run_modal(Modal(self.scr, f"Edit category  {cat_id}", fields, raw))
+        if not vals:
             return
+        idx = _catalog_find_cat(cat_id)
+        if idx == -1:
+            with self.lock:
+                self.status = f"✗ Could not find category line for '{cat_id}'"
+            return
+        _catalog_replace(idx, _make_cat_line(cat_id, vals["label"], vals["stow"]))
+        with self.lock:
+            self.status = f"✓ Updated category '{cat_id}'"
+        self._bg(self._load_cats)
 
-        # Quote fields that may contain spaces
-        def q(s):
-            return shlex.quote(s) if s else '""'
+    def _delete_category(self, cat_id: str):
+        if not self._confirm(f"Delete category '{cat_id}' and ALL its deps?"):
+            return
+        _catalog_delete_cat(cat_id)
+        with self.lock:
+            self.status   = f"✓ Deleted category '{cat_id}'"
+            self.cat_sel  = max(0, self.cat_sel - 1)
+        self._bg(self._load_cats)
 
-        line = (
-            f'\nregister_dep {cat_id} {dep_id} {q(label)} {kind} '
-            f'{q(check)} {q(install)} {q(note)}\n'
+    def _add_dep(self, cat_id: str):
+        fields = [
+            ("id",      "id",      "lowercase, no spaces"),
+            ("label",   "label",   "display name"),
+            ("kind",    "kind",    "choice:cmd|path|shell|package"),
+            ("check",   "check",   "cmd name / path / shell expression"),
+            ("install", "install", "bash command  or  apt_pkg|arch_pkg  for package kind"),
+            ("note",    "note",    "short description (optional)"),
+        ]
+        defaults = {"kind": "cmd"}
+        vals = self._run_modal(Modal(self.scr, f"Add dep  →  {cat_id}", fields, defaults))
+        if not vals or not vals["id"]:
+            return
+        dep_id = vals["id"].lower().replace(" ", "_")
+        _catalog_append(
+            f"\n{_make_dep_line(cat_id, dep_id, vals['label'], vals['kind'], vals['check'], vals['install'], vals['note'])}"
         )
-        with open(CATALOG, "a") as f:
-            f.write(line)
-
-        print(f"\n  ✓ Added dep '{dep_id}' to category '{cat_id}'")
-        print(f"  in {CATALOG}")
-        input("  Press Enter to continue…")
-        self._resume_curses()
+        with self.lock:
+            self.status = f"✓ Added '{dep_id}' to '{cat_id}'"
         self._bg(self._load_items_for_sel)
 
-    # ── input ─────────────────────────────────────────────────────────────────
+    def _edit_dep(self, cat_id: str, dep_id: str):
+        raw = fetch_raw_item(dep_id)
+        fields = [
+            ("label",   "label",   "display name"),
+            ("kind",    "kind",    "choice:cmd|path|shell|package"),
+            ("check",   "check",   "cmd name / path / shell expression"),
+            ("install", "install", "bash command  or  apt_pkg|arch_pkg  for package kind"),
+            ("note",    "note",    "short description (optional)"),
+        ]
+        vals = self._run_modal(Modal(self.scr, f"Edit dep  {dep_id}", fields, raw))
+        if not vals:
+            return
+        idx = _catalog_find_dep(cat_id, dep_id)
+        if idx == -1:
+            with self.lock:
+                self.status = f"✗ Could not find dep line for '{dep_id}'"
+            return
+        _catalog_replace(
+            idx,
+            _make_dep_line(cat_id, dep_id, vals["label"], vals["kind"], vals["check"], vals["install"], vals["note"]),
+        )
+        with self.lock:
+            self.status = f"✓ Updated '{dep_id}'"
+        self._bg(self._load_items_for_sel)
+
+    def _delete_dep(self, cat_id: str, dep_id: str):
+        if not self._confirm(f"Delete dep '{dep_id}' from '{cat_id}'?"):
+            return
+        _catalog_delete_dep(cat_id, dep_id)
+        with self.lock:
+            self.status   = f"✓ Deleted '{dep_id}'"
+            self.item_sel = max(0, self.item_sel - 1)
+        self._bg(self._load_items_for_sel)
+
+    # ── helpers ───────────────────────────────────────────────────────────────
 
     def _cur_cat_id(self):
         with self.lock:
@@ -597,6 +857,8 @@ class App:
         with self.lock:
             items = list(self.items)
         return items[self.item_sel]["id"] if items and 0 <= self.item_sel < len(items) else None
+
+    # ── input ─────────────────────────────────────────────────────────────────
 
     def handle(self, key) -> bool:
         if key in (ord('q'), ord('Q')):
@@ -615,7 +877,10 @@ class App:
             self._open_logs_dir()
             return True
 
-        if self.focus == 0:  # categories
+        cat_id  = self._cur_cat_id()
+        item_id = self._cur_item_id()
+
+        if self.focus == 0:  # ── categories ──────────────────────────────────
             if key in (ord('j'), curses.KEY_DOWN):
                 self.cat_sel += 1
                 self._bg(self._load_items_for_sel)
@@ -627,17 +892,17 @@ class App:
             elif key == ord('r'):
                 self._bg(self._load_cats)
             elif key == ord('n'):
-                self._add_new_category()
-            elif key == ord('a'):
-                cat_id = self._cur_cat_id()
-                if cat_id:
-                    self._bg(self._do_install_cat, cat_id)
-            elif key == ord('s'):
-                cat_id = self._cur_cat_id()
-                if cat_id:
-                    self._bg(self._do_stow_cat, cat_id)
+                self._add_category()
+            elif key == ord('e') and cat_id:
+                self._edit_category(cat_id)
+            elif key == ord('d') and cat_id:
+                self._delete_category(cat_id)
+            elif key == ord('a') and cat_id:
+                self._bg(self._do_install_cat, cat_id)
+            elif key == ord('s') and cat_id:
+                self._bg(self._do_stow_cat, cat_id)
 
-        else:  # items
+        else:  # ── items ───────────────────────────────────────────────────────
             if key in (ord('j'), curses.KEY_DOWN):
                 self.item_sel += 1
                 self._bg(self._load_details_for_sel)
@@ -646,24 +911,20 @@ class App:
                 self._bg(self._load_details_for_sel)
             elif key in (27, curses.KEY_LEFT):
                 self.focus = 0
-            elif key == ord('n'):
-                cat_id = self._cur_cat_id()
-                if cat_id:
-                    self._add_new_dep(cat_id)
-            elif key == ord('i'):
-                item_id = self._cur_item_id()
-                if item_id:
-                    self._bg(self._do_install_item, item_id)
-            elif key == ord('a'):
-                cat_id = self._cur_cat_id()
-                if cat_id:
-                    self._bg(self._do_install_cat, cat_id)
-            elif key == ord('s'):
-                cat_id = self._cur_cat_id()
-                if cat_id:
-                    self._bg(self._do_stow_cat, cat_id)
             elif key == ord('r'):
                 self._bg(self._load_items_for_sel)
+            elif key == ord('n') and cat_id:
+                self._add_dep(cat_id)
+            elif key == ord('e') and cat_id and item_id:
+                self._edit_dep(cat_id, item_id)
+            elif key == ord('d') and cat_id and item_id:
+                self._delete_dep(cat_id, item_id)
+            elif key == ord('i') and item_id:
+                self._bg(self._do_install_item, item_id)
+            elif key == ord('a') and cat_id:
+                self._bg(self._do_install_cat, cat_id)
+            elif key == ord('s') and cat_id:
+                self._bg(self._do_stow_cat, cat_id)
 
         return True
 

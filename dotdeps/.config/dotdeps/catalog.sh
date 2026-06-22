@@ -165,6 +165,24 @@ dep_render_item() {
 	[[ -n "${DEP_ITEM_NOTE[$id]}" ]] && printf 'Note:     %s\n' "${DEP_ITEM_NOTE[$id]}"
 }
 
+dep_raw_item() {
+	local id="$1"
+	printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+		"${DEP_ITEM_LABEL[$id]:-}" \
+		"${DEP_ITEM_KIND[$id]:-cmd}" \
+		"${DEP_ITEM_CHECK[$id]:-}" \
+		"${DEP_ITEM_INSTALL[$id]:-}" \
+		"${DEP_ITEM_NOTE[$id]:-}" \
+		"${DEP_ITEM_CATEGORY[$id]:-}"
+}
+
+dep_raw_category() {
+	local id="$1"
+	printf '%s\t%s\n' \
+		"${DEP_CATEGORY_LABEL[$id]:-}" \
+		"${DEP_CATEGORY_STOW[$id]:-}"
+}
+
 dep_render_stow_packages() {
 	local packages="$1"
 	local pkg
@@ -289,3 +307,5 @@ register_dep desktop kvantum "kvantummanager" cmd "kvantummanager" "kvantum|kvan
 
 register_dep fonts meslo_font "Meslo Nerd Font" shell "fc-match -f '%{family}\n' 'MesloLGS NF' | grep -qi Meslo" 'if [[ "$DISTRO" == arch ]]; then yay -S --noconfirm ttf-meslo-nerd-font-powerlevel10k; else d="$HOME/.local/share/fonts/MesloNF" && mkdir -p "$d" && for n in "Regular" "Bold" "Italic" "Bold Italic"; do curl -fLo "$d/MesloLGS NF $n.ttf" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20${n// /%20}.ttf"; done && fc-cache -fv; fi' "Prompt font"
 register_dep fonts fira_code "Fira Code" shell "fc-match -f '%{family}\n' 'Fira Code' | grep -qi 'Fira Code'" 'if [[ "$DISTRO" == arch ]]; then yay -S --noconfirm ttf-firacode-nerd; else sudo apt-get install -y fonts-firacode; fi' "Fallback font"
+
+register_dep shell test test test --version 'test --version' "" ""
