@@ -1,0 +1,605 @@
+#!/usr/bin/env python3
+"""dotdeps — dotfiles dependency dashboard (lazygit-style TUI)"""
+
+import curses
+import os
+import shlex
+import subprocess
+import sys
+import threading
+from datetime import datetime
+
+# ── Repo detection ────────────────────────────────────────────────────────────
+
+def _find_root(start: str):
+    d = os.path.realpath(start)
+    while d != "/":
+        if os.path.isdir(os.path.join(d, ".git")):
+            return d
+        d = os.path.dirname(d)
+    return None
+
+SCRIPT_PATH = os.path.realpath(__file__)
+ROOT_DIR    = _find_root(os.path.dirname(SCRIPT_PATH)) or ""
+HOME_DIR    = os.path.expanduser("~")
+LOG_DIR     = os.path.join(HOME_DIR, ".config", "dotdeps", "logs")
+
+
+def _find_catalog(root: str) -> str:
+    for candidate in [
+        os.path.join(HOME_DIR, ".config", "dotdeps", "catalog.sh"),
+        os.path.join(root, "dotdeps", ".config", "dotdeps", "catalog.sh"),
+        os.path.join(root, "deps", "catalog.sh"),
+    ]:
+        if os.path.isfile(candidate):
+            return candidate
+    return ""
+
+
+CATALOG = _find_catalog(ROOT_DIR)
+
+
+def _get_distro() -> str:
+    try:
+        r = subprocess.run(
+            ["bash", "-c", ". /etc/os-release && printf '%s' \"$ID\""],
+            capture_output=True, text=True, timeout=5,
+        )
+        return r.stdout.strip() or "unknown"
+    except Exception:
+        return "unknown"
+
+DISTRO = _get_distro()
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+
+def _new_log_path(action: str) -> str:
+    os.makedirs(LOG_DIR, exist_ok=True)
+    ts  = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    tag = action.replace(" ", "_").replace("/", "_")[:40]
+    return os.path.join(LOG_DIR, f"{ts}_{tag}.log")
+
+# ── Bash bridge ───────────────────────────────────────────────────────────────
+
+_PREAMBLE = (
+    f"ROOT_DIR={shlex.quote(ROOT_DIR)} "
+    f"HOME_DIR={shlex.quote(HOME_DIR)} "
+    f"DISTRO={shlex.quote(DISTRO)} "
+    f"source {shlex.quote(CATALOG)} 2>/dev/null; "
+)
+
+
+def _bash(cmd: str) -> str:
+    try:
+        r = subprocess.run(
+            ["bash", "-c", _PREAMBLE + cmd],
+            capture_output=True, text=True, timeout=60,
+        )
+        return r.stdout.strip()
+    except Exception as e:
+        return f"error: {e}"
+
+
+def _bash_stream(cmd: str, log_fn, log_path: str = "") -> int:
+    lf = None
+    try:
+        proc = subprocess.Popen(
+            ["bash", "-c", _PREAMBLE + cmd],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        )
+        if log_path:
+            lf = open(log_path, "w")
+            lf.write(f"# cmd: {cmd}\n# distro: {DISTRO}\n# root: {ROOT_DIR}\n\n")
+        for line in proc.stdout:
+            line = line.rstrip()
+            log_fn(line)
+            if lf:
+                lf.write(line + "\n")
+                lf.flush()
+        proc.wait()
+        if lf:
+            lf.write(f"\n# exit: {proc.returncode}\n")
+        return proc.returncode
+    except Exception as e:
+        log_fn(f"error: {e}")
+        return 1
+    finally:
+        if lf:
+            lf.close()
+
+# ── Data fetchers ─────────────────────────────────────────────────────────────
+
+def fetch_categories():
+    cats = []
+    for line in _bash("dep_list_categories").splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 3:
+            cats.append({"id": parts[0], "label": parts[1], "counts": parts[2]})
+    return cats
+
+
+def fetch_items(cat_id: str):
+    items = []
+    for line in _bash(f"dep_list_items {shlex.quote(cat_id)}").splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 3:
+            items.append({
+                "id":     parts[0],
+                "label":  parts[1],
+                "status": parts[2],
+                "note":   parts[3] if len(parts) > 3 else "",
+            })
+    return items
+
+
+def fetch_details(item_id: str) -> str:
+    return _bash(f"dep_render_item {shlex.quote(item_id)}")
+
+# ── Stow check (pre-curses) ───────────────────────────────────────────────────
+
+def _pre_flight():
+    bin_path = os.path.join(HOME_DIR, ".local", "bin", "dotdeps")
+    is_link      = os.path.islink(bin_path)
+    points_here  = is_link and os.path.realpath(bin_path) == SCRIPT_PATH
+
+    if not is_link or not points_here:
+        if is_link:
+            status = f"symlink → {os.readlink(bin_path)!r} (not this repo)"
+        else:
+            status = "not a symlink (bin package not stowed)"
+        print(f"\n  dotdeps: {bin_path} is {status}")
+        try:
+            resp = input("  Stow the bin package now? [Y/n] ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            resp = "n"
+        if resp in ("", "y", "yes"):
+            rc = subprocess.run(
+                ["stow", "-d", ROOT_DIR, "-t", HOME_DIR, "-R", "bin"],
+            ).returncode
+            print(f"  {'✓ Stowed successfully' if rc == 0 else '✗ Stow failed — continuing anyway'}")
+            input("  Press Enter to continue…")
+
+    # Also check dotdeps config package
+    cfg_path = os.path.join(HOME_DIR, ".config", "dotdeps", "catalog.sh")
+    if not os.path.islink(cfg_path):
+        print(f"\n  dotdeps: {cfg_path} is not a symlink (dotdeps package not stowed)")
+        try:
+            resp = input("  Stow the dotdeps package now? [Y/n] ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            resp = "n"
+        if resp in ("", "y", "yes"):
+            rc = subprocess.run(
+                ["stow", "-d", ROOT_DIR, "-t", HOME_DIR, "-R", "dotdeps"],
+            ).returncode
+            print(f"  {'✓ Stowed successfully' if rc == 0 else '✗ Stow failed — continuing anyway'}")
+            input("  Press Enter to continue…")
+
+# ── Color constants ───────────────────────────────────────────────────────────
+
+C_NORMAL = 0
+C_GREEN  = 1
+C_RED    = 2
+C_YELLOW = 3
+C_CYAN   = 4
+C_SEL    = 5
+C_BORDER = 6
+
+# ── App ───────────────────────────────────────────────────────────────────────
+
+HELP = (
+    " [j/k] nav  [tab] pane  [→/enter] items  [←/esc] back"
+    "  [i] install  [a] all  [s] stow  [r] refresh  [L] logs  [q] quit"
+)
+
+
+class App:
+    def __init__(self, stdscr):
+        self.scr  = stdscr
+        self.lock = threading.Lock()
+
+        # data
+        self.cats     = []
+        self.items    = []
+        self.details  = ""
+        self.loglines = []
+        self.last_log = ""   # path of last written log file
+
+        # navigation
+        self.focus      = 0   # 0=cats  1=items
+        self.cat_sel    = 0
+        self.cat_scroll = 0
+        self.item_sel    = 0
+        self.item_scroll = 0
+
+        # state
+        self.status = "Loading…"
+        self.busy   = False
+
+        self._init_colors()
+        self._layout()
+
+    # ── layout ────────────────────────────────────────────────────────────────
+
+    def _init_colors(self):
+        curses.start_color()
+        curses.use_default_colors()
+        curses.init_pair(C_GREEN,  curses.COLOR_GREEN,  -1)
+        curses.init_pair(C_RED,    curses.COLOR_RED,    -1)
+        curses.init_pair(C_YELLOW, curses.COLOR_YELLOW, -1)
+        curses.init_pair(C_CYAN,   curses.COLOR_CYAN,   -1)
+        curses.init_pair(C_SEL,    curses.COLOR_BLACK,  curses.COLOR_WHITE)
+        curses.init_pair(C_BORDER, curses.COLOR_CYAN,   -1)
+
+    def _layout(self):
+        H, W = self.scr.getmaxyx()
+        left_w  = max(28, W // 3)
+        right_w = W - left_w
+        items_h = max(5, (H - 2) * 2 // 3)
+        log_h   = max(3, H - 2 - items_h)
+
+        self.w_cats  = curses.newwin(H - 2, left_w,   0,       0)
+        self.w_items = curses.newwin(items_h, right_w, 0,       left_w)
+        self.w_log   = curses.newwin(log_h,  right_w, items_h, left_w)
+        self.w_bar   = curses.newwin(1, W,             H - 2,   0)
+        self.w_help  = curses.newwin(1, W,             H - 1,   0)
+
+    # ── draw helpers ─────────────────────────────────────────────────────────
+
+    def _box(self, win, title="", active=False):
+        win.erase()
+        bc = curses.color_pair(C_BORDER if active else C_NORMAL)
+        win.attron(bc)
+        win.box()
+        win.attroff(bc)
+        if title:
+            win.addstr(0, 2, f" {title} ", bc | curses.A_BOLD)
+
+    def _addstr(self, win, y, x, text, attr=0):
+        try:
+            win.addstr(y, x, text, attr)
+        except curses.error:
+            pass
+
+    # ── draw panels ──────────────────────────────────────────────────────────
+
+    def _draw_cats(self):
+        active = self.focus == 0
+        self._box(self.w_cats, "Categories", active)
+        H, W = self.w_cats.getmaxyx()
+        inner = H - 2
+
+        with self.lock:
+            cats = list(self.cats)
+
+        n = len(cats)
+        self.cat_sel = max(0, min(self.cat_sel, n - 1 if n else 0))
+        if self.cat_sel < self.cat_scroll:
+            self.cat_scroll = self.cat_sel
+        elif n and self.cat_sel >= self.cat_scroll + inner:
+            self.cat_scroll = self.cat_sel - inner + 1
+
+        for i, cat in enumerate(cats[self.cat_scroll: self.cat_scroll + inner]):
+            abs_i  = i + self.cat_scroll
+            label  = cat["label"]
+            counts = cat["counts"]
+            sel    = abs_i == self.cat_sel
+            cursor = "▸ " if (active and sel) else "  "
+            row    = f"{cursor}{label:<20} {counts:>5}"
+            attr   = curses.color_pair(C_SEL) if sel else 0
+            self._addstr(self.w_cats, i + 1, 1, row[:W - 2].ljust(W - 2), attr)
+
+        self.w_cats.noutrefresh()
+
+    def _draw_items(self):
+        active = self.focus == 1
+        with self.lock:
+            cats  = list(self.cats)
+            items = list(self.items)
+
+        cat_label = cats[self.cat_sel]["label"] if cats and 0 <= self.cat_sel < len(cats) else ""
+        self._box(self.w_items, f"Items — {cat_label}", active)
+        H, W = self.w_items.getmaxyx()
+        inner = H - 2
+
+        n = len(items)
+        self.item_sel = max(0, min(self.item_sel, n - 1 if n else 0))
+        if self.item_sel < self.item_scroll:
+            self.item_scroll = self.item_sel
+        elif n and self.item_sel >= self.item_scroll + inner:
+            self.item_scroll = self.item_sel - inner + 1
+
+        for i, item in enumerate(items[self.item_scroll: self.item_scroll + inner]):
+            abs_i = i + self.item_scroll
+            ok    = item["status"] == "✓"
+            icon  = "✓" if ok else "✗"
+            icol  = curses.color_pair(C_GREEN) if ok else curses.color_pair(C_RED)
+            sel   = abs_i == self.item_sel
+            attr  = curses.color_pair(C_SEL) if sel else 0
+            cursor = "▸" if (active and sel) else " "
+            label  = item["label"][:18]
+            note   = item["note"][:24]
+            rest   = f"  {label:<18}  {note}"
+
+            self._addstr(self.w_items, i + 1, 1, cursor, attr)
+            self._addstr(self.w_items, i + 1, 2, icon + " ", icol | attr)
+            self._addstr(self.w_items, i + 1, 4, rest[:W - 6], attr)
+
+        self.w_items.noutrefresh()
+
+    def _draw_log(self):
+        with self.lock:
+            loglines = list(self.loglines)
+            details  = self.details
+            last_log = self.last_log
+
+        # decide panel title
+        if loglines:
+            log_ref = f" · {os.path.basename(last_log)}" if last_log else ""
+            title   = f"Log{log_ref}"
+        else:
+            title = "Details"
+
+        self._box(self.w_log, title)
+        H, W = self.w_log.getmaxyx()
+        inner = H - 2
+
+        lines = (loglines if loglines else details.splitlines())
+        tail  = lines[-inner:] if len(lines) > inner else lines
+
+        for i, line in enumerate(tail[:inner]):
+            self._addstr(self.w_log, i + 1, 2, line[:W - 4])
+
+        self.w_log.noutrefresh()
+
+    def _draw_bar(self):
+        _, W = self.w_bar.getmaxyx()
+        with self.lock:
+            status = self.status
+        busy = " ⟳" if self.busy else ""
+        msg  = f"  dotdeps  ·  {DISTRO}  ·  {status}{busy}"
+        self._addstr(self.w_bar, 0, 0, msg[:W - 1].ljust(W - 1),
+                     curses.color_pair(C_YELLOW) | curses.A_BOLD)
+        self.w_bar.noutrefresh()
+
+    def _draw_help(self):
+        _, W = self.w_help.getmaxyx()
+        self._addstr(self.w_help, 0, 0, HELP[:W - 1], curses.color_pair(C_CYAN))
+        self.w_help.noutrefresh()
+
+    def draw(self):
+        self._draw_cats()
+        self._draw_items()
+        self._draw_log()
+        self._draw_bar()
+        self._draw_help()
+        curses.doupdate()
+
+    # ── background jobs ───────────────────────────────────────────────────────
+
+    def _bg(self, fn, *args):
+        def wrapper():
+            self.busy = True
+            try:
+                fn(*args)
+            finally:
+                self.busy = False
+        threading.Thread(target=wrapper, daemon=True).start()
+
+    def _load_cats(self):
+        with self.lock:
+            self.status = "Loading categories…"
+        cats = fetch_categories()
+        with self.lock:
+            self.cats   = cats
+            self.items  = []
+            self.status = ROOT_DIR
+        self._load_items_for_sel()
+
+    def _load_items_for_sel(self):
+        with self.lock:
+            cats = list(self.cats)
+            sel  = self.cat_sel
+        if not cats or sel >= len(cats):
+            return
+        cat_id    = cats[sel]["id"]
+        cat_label = cats[sel]["label"]
+        with self.lock:
+            self.status = f"Checking {cat_label}…"
+        items = fetch_items(cat_id)
+        with self.lock:
+            self.items       = items
+            self.item_sel    = 0
+            self.item_scroll = 0
+            self.status      = ROOT_DIR
+        self._load_details_for_sel()
+
+    def _load_details_for_sel(self):
+        with self.lock:
+            items = list(self.items)
+            sel   = self.item_sel
+        if not items or sel >= len(items):
+            with self.lock:
+                self.details = ""
+            return
+        item_id = items[sel]["id"]
+        details = fetch_details(item_id)
+        with self.lock:
+            self.details  = details
+            self.loglines = []   # clear log when browsing
+
+    def _do_install_item(self, item_id: str):
+        log_path = _new_log_path(f"install_{item_id}")
+        with self.lock:
+            self.loglines = [f"# install: {item_id}", f"# log: {log_path}", ""]
+            self.last_log = log_path
+            self.status   = f"Installing {item_id}…"
+
+        def log(line):
+            with self.lock:
+                self.loglines.append(line)
+
+        rc = _bash_stream(f"dep_install_item {shlex.quote(item_id)}", log, log_path)
+        result = "✓ Done" if rc == 0 else "✗ Failed"
+        with self.lock:
+            self.loglines.append(f"\n{result} (exit {rc})")
+            self.status = f"{result}: {item_id}  · log: {os.path.basename(log_path)}"
+        self._load_items_for_sel()
+
+    def _do_install_cat(self, cat_id: str):
+        log_path = _new_log_path(f"install_cat_{cat_id}")
+        with self.lock:
+            self.loglines = [f"# install category: {cat_id}", f"# log: {log_path}", ""]
+            self.last_log = log_path
+            self.status   = f"Installing all in {cat_id}…"
+
+        def log(line):
+            with self.lock:
+                self.loglines.append(line)
+
+        rc = _bash_stream(f"dep_install_category {shlex.quote(cat_id)}", log, log_path)
+        result = "✓ Done" if rc == 0 else "✗ Failed"
+        with self.lock:
+            self.loglines.append(f"\n{result} (exit {rc})")
+            self.status = f"{result}: install {cat_id}  · log: {os.path.basename(log_path)}"
+        self._load_items_for_sel()
+
+    def _do_stow_cat(self, cat_id: str):
+        log_path = _new_log_path(f"stow_{cat_id}")
+        with self.lock:
+            self.loglines = [f"# stow: {cat_id}", f"# log: {log_path}", ""]
+            self.last_log = log_path
+            self.status   = f"Stowing {cat_id}…"
+
+        def log(line):
+            with self.lock:
+                self.loglines.append(line)
+
+        cat_id_q = shlex.quote(cat_id)
+        rc = _bash_stream(
+            f"pkgs=\"${{DEP_CATEGORY_STOW[{cat_id_q}]}}\"; dep_stow_packages \"$pkgs\"",
+            log, log_path,
+        )
+        result = "✓ Done" if rc == 0 else "✗ Failed"
+        with self.lock:
+            self.loglines.append(f"\n{result} (exit {rc})")
+            self.status = f"{result}: stow {cat_id}  · log: {os.path.basename(log_path)}"
+
+    def _open_logs_dir(self):
+        """Show log files list in the log pane."""
+        try:
+            files = sorted(os.listdir(LOG_DIR), reverse=True)[:30]
+        except FileNotFoundError:
+            files = []
+        lines = [f"Logs in {LOG_DIR}:", ""] + (files if files else ["(no logs yet)"])
+        with self.lock:
+            self.loglines = lines
+            self.last_log = ""
+
+    # ── input ─────────────────────────────────────────────────────────────────
+
+    def _cur_cat_id(self):
+        with self.lock:
+            cats = list(self.cats)
+        return cats[self.cat_sel]["id"] if cats and 0 <= self.cat_sel < len(cats) else None
+
+    def _cur_item_id(self):
+        with self.lock:
+            items = list(self.items)
+        return items[self.item_sel]["id"] if items and 0 <= self.item_sel < len(items) else None
+
+    def handle(self, key) -> bool:
+        if key in (ord('q'), ord('Q')):
+            return False
+
+        if key == curses.KEY_RESIZE:
+            self.scr.clear()
+            self._layout()
+            return True
+
+        if key == ord('\t'):
+            self.focus = 1 - self.focus
+            return True
+
+        if key == ord('L'):
+            self._open_logs_dir()
+            return True
+
+        if self.focus == 0:  # categories
+            if key in (ord('j'), curses.KEY_DOWN):
+                self.cat_sel += 1
+                self._bg(self._load_items_for_sel)
+            elif key in (ord('k'), curses.KEY_UP):
+                self.cat_sel = max(0, self.cat_sel - 1)
+                self._bg(self._load_items_for_sel)
+            elif key in (ord('\n'), 10, 13, curses.KEY_ENTER, curses.KEY_RIGHT):
+                self.focus = 1
+            elif key == ord('r'):
+                self._bg(self._load_cats)
+            elif key == ord('a'):
+                cat_id = self._cur_cat_id()
+                if cat_id:
+                    self._bg(self._do_install_cat, cat_id)
+            elif key == ord('s'):
+                cat_id = self._cur_cat_id()
+                if cat_id:
+                    self._bg(self._do_stow_cat, cat_id)
+
+        else:  # items
+            if key in (ord('j'), curses.KEY_DOWN):
+                self.item_sel += 1
+                self._bg(self._load_details_for_sel)
+            elif key in (ord('k'), curses.KEY_UP):
+                self.item_sel = max(0, self.item_sel - 1)
+                self._bg(self._load_details_for_sel)
+            elif key in (27, curses.KEY_LEFT):
+                self.focus = 0
+            elif key == ord('i'):
+                item_id = self._cur_item_id()
+                if item_id:
+                    self._bg(self._do_install_item, item_id)
+            elif key == ord('a'):
+                cat_id = self._cur_cat_id()
+                if cat_id:
+                    self._bg(self._do_install_cat, cat_id)
+            elif key == ord('s'):
+                cat_id = self._cur_cat_id()
+                if cat_id:
+                    self._bg(self._do_stow_cat, cat_id)
+            elif key == ord('r'):
+                self._bg(self._load_items_for_sel)
+
+        return True
+
+    # ── main loop ─────────────────────────────────────────────────────────────
+
+    def run(self):
+        curses.curs_set(0)
+        self.scr.nodelay(True)
+        self.scr.keypad(True)
+
+        self._bg(self._load_cats)
+
+        while True:
+            self.draw()
+            key = self.scr.getch()
+            if key == -1:
+                curses.napms(50)
+                continue
+            if not self.handle(key):
+                break
+
+
+# ── entry point ───────────────────────────────────────────────────────────────
+
+def main():
+    if not ROOT_DIR:
+        sys.exit("dotdeps: could not locate dotfiles root (.git directory)")
+    if not CATALOG:
+        sys.exit(f"dotdeps: catalog not found (checked ~/.config/dotdeps/catalog.sh and {ROOT_DIR})")
+
+    _pre_flight()
+    curses.wrapper(lambda scr: App(scr).run())
+
+
+if __name__ == "__main__":
+    main()
