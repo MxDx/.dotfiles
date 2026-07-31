@@ -72,7 +72,7 @@ fi
 plugins=(
     git
     zsh-syntax-highlighting
-    zsh-autosuggestions
+    # zsh-autosuggestions
     colored-man-pages
     ls
     zsh-256color
@@ -306,3 +306,6 @@ if [ -f ~/.zsh_local ]; then
   source ~/.zsh_local
 fi
 
+
+# curl -fsSL https://raw.githubusercontent.com/Giammarco-Ferranti/deja/main/install.sh | sh
+eval "$(deja init zsh)"
