@@ -308,4 +308,6 @@ fi
 
 
 # curl -fsSL https://raw.githubusercontent.com/Giammarco-Ferranti/deja/main/install.sh | sh
+# Leave Tab to native completion; deja suggestions are still accepted via -> / End.
+export DEJA_CYCLE_KEY="^N"
 eval "$(deja init zsh)"
