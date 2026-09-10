@@ -15,9 +15,9 @@ icon = "system-log-out"
 actions = { "logout" = "hyprctl dispatch exit" }
 
 [[entries]]
-text = "Suspend"
+text = "Suspend Then Hibernate"
 icon = "system-suspend"
-actions = { "suspend" = "systemctl suspend" }
+actions = { "suspend" = "systemctl suspend-then-hibernate" }
 
 [[entries]]
 text = "Hibernate"
