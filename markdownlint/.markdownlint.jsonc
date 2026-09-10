@@ -1,0 +1,11 @@
+{
+  // MD013: line-length. Default (80) is too aggressive and conflicts with
+  // prettier's proseWrap width (see nvim/.config/nvim/lua/plugins/formatting.lua).
+  // Raise it well past normal prose so it only catches truly runaway lines,
+  // and skip code blocks/tables, which can't be reflowed anyway.
+  "MD013": {
+    "line_length": 200,
+    "code_blocks": false,
+    "tables": false
+  }
+}

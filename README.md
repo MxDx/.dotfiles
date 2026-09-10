@@ -36,6 +36,7 @@ Press `n` inside dotdeps, or edit `~/.config/dotdeps/catalog.sh` directly
 | bin       | `~/.local/bin/`       |
 | dotdeps   | `~/.config/dotdeps/`  |
 | hypr      | `~/.config/hypr/`     |
+| markdownlint | `~/.markdownlint.jsonc` |
 | nvim      | `~/.config/nvim/`     |
 | p10k      | `~/.p10k.zsh`         |
 | posting   | `~/.config/posting/`  |
