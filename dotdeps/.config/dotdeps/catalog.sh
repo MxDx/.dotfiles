@@ -308,3 +308,5 @@ register_dep desktop kvantum "kvantummanager" package "kvantummanager" "kvantum|
 register_dep fonts meslo_font "Meslo Nerd Font" shell "fc-match -f '%{family}\n' 'MesloLGS NF' | grep -qi Meslo" 'if [[ "$DISTRO" == arch ]]; then yay -S --noconfirm ttf-meslo-nerd-font-powerlevel10k; else d="$HOME/.local/share/fonts/MesloNF" && mkdir -p "$d" && for n in "Regular" "Bold" "Italic" "Bold Italic"; do curl -fLo "$d/MesloLGS NF $n.ttf" "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20${n// /%20}.ttf"; done && fc-cache -fv; fi' "Prompt font"
 register_dep fonts fira_code "Fira Code" shell "fc-match -f '%{family}\n' 'Fira Code' | grep -qi 'Fira Code'" 'if [[ "$DISTRO" == arch ]]; then yay -S --noconfirm ttf-firacode-nerd; else sudo apt-get install -y fonts-firacode; fi' "Fallback font"
 
+
+register_category herdr 'Herdr Stack' "herdr"

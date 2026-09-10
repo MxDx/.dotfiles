@@ -1,0 +1,12 @@
+repo = "*"
+
+[[tabs]]
+name = "claude"
+command = "claude"
+
+[[tabs]]
+name = "code-review"
+command = "nvim"
+
+[[tabs]]
+name = "terminal"
