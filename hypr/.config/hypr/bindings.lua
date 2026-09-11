@@ -4,10 +4,13 @@
 --
 -- This file is ~/.config/hypr/bindings.lua -- loaded LAST by hyprland.lua,
 -- after ALL of Omarchy's own defaults (default/hypr/bindings/*.lua) and the
--- current theme. That's why some entries below use o.rebind (unbind + bind)
--- instead of plain o.bind -- those specific keys are already claimed by an
+-- current theme. That's why some entries below call hl.unbind(keys) right
+-- before o.bind(...) -- those specific keys are already claimed by an
 -- Omarchy default, and binding without unbinding first would fire BOTH
--- actions on one keypress.
+-- actions on one keypress. (This is what Omarchy's own o.rebind() does
+-- internally -- inlined here instead of calling o.rebind() directly since
+-- that helper isn't present on every Omarchy build; hl.unbind + o.bind are
+-- the stable underlying primitives it wraps.)
 --
 -- Check what's currently live at any time with:
 --   omarchy menu keybindings --print
@@ -28,11 +31,14 @@
 -- lives on SUPER+RETURN instead, so T was spare functionality, not a name
 -- collision.
 --------------------------------------------------------------------------
-o.rebind("SUPER + W", "Toggle window floating/tiling", hl.dsp.window.float({ action = "toggle" })) -- was: close window (redundant w/ SUPER+Q)
-o.rebind("SUPER + T", "Terminal", "kitty") -- was: toggle window floating/tiling (moved to SUPER+W above)
+hl.unbind("SUPER + W") -- was: close window (redundant w/ SUPER+Q)
+o.bind("SUPER + W", "Toggle window floating/tiling", hl.dsp.window.float({ action = "toggle" }))
+hl.unbind("SUPER + T") -- was: toggle window floating/tiling (moved to SUPER+W above)
+o.bind("SUPER + T", "Terminal", "kitty")
 -- If you'd rather stay in sync with whatever terminal Omarchy is configured
 -- to use (instead of hardcoding kitty), use this instead:
--- o.rebind("SUPER + T", "Terminal", { omarchy = "terminal" })
+-- hl.unbind("SUPER + T")
+-- o.bind("SUPER + T", "Terminal", { omarchy = "terminal" })
 
 --------------------------------------------------------------------------
 -- Apps -- both free, no clash found anywhere in the default bindings.
@@ -54,12 +60,15 @@ o.bind(
 --------------------------------------------------------------------------
 -- Vim-style focus movement. H is free; J/K/L collide with real Omarchy
 -- defaults (toggle split, keybindings menu, toggle workspace layout) so
--- those three need o.rebind, not o.bind.
+-- those three need hl.unbind first, not plain o.bind.
 --------------------------------------------------------------------------
 o.bind("SUPER + H", "Focus left", hl.dsp.focus({ direction = "l" }))
-o.rebind("SUPER + J", "Focus down", hl.dsp.focus({ direction = "d" })) -- was: toggle window split
-o.rebind("SUPER + K", "Focus up", hl.dsp.focus({ direction = "u" })) -- was: keybindings menu ("SUPER + K" for that is now gone -- see notes)
-o.rebind("SUPER + L", "Focus right", hl.dsp.focus({ direction = "r" })) -- was: toggle workspace layout
+hl.unbind("SUPER + J") -- was: toggle window split
+o.bind("SUPER + J", "Focus down", hl.dsp.focus({ direction = "d" }))
+hl.unbind("SUPER + K") -- was: keybindings menu
+o.bind("SUPER + K", "Focus up", hl.dsp.focus({ direction = "u" }))
+hl.unbind("SUPER + L") -- was: toggle workspace layout
+o.bind("SUPER + L", "Focus right", hl.dsp.focus({ direction = "r" }))
 
 --------------------------------------------------------------------------
 -- Hyprlock alias -- free. Omarchy's native lock is SUPER+CTRL+L; this just
