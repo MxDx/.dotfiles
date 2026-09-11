@@ -74,8 +74,6 @@ plugins=(
     zsh-syntax-highlighting
     # zsh-autosuggestions
     colored-man-pages
-    ls
-    zsh-256color
     sudo
     fzf-tab
 )
@@ -267,9 +265,6 @@ s () {
 autoload -Uz edit-command-line
 zle -N edit-command-line
 bindkey '^X^E' edit-command-line
-
-# To set vi mode in zsh
-set -o vi
 
 
 # Auto load python virtualenvs
