@@ -79,6 +79,13 @@ hl.unbind("SUPER + L") -- was: toggle workspace layout
 o.bind("SUPER + L", "Focus right", hl.dsp.focus({ direction = "r" }))
 
 --------------------------------------------------------------------------
+-- Keybindings menu -- Omarchy's default home for this was SUPER+K, which
+-- the vim-focus block above reclaimed. SUPER+SHIFT+K is free and completes
+-- the K-family alongside SUPER+ALT+K (tmux) and SUPER+CTRL+K (herdr).
+--------------------------------------------------------------------------
+o.bind("SUPER + SHIFT + K", "Keybindings menu", "omarchy menu keybindings")
+
+--------------------------------------------------------------------------
 -- Hyprlock alias -- free. Omarchy's native lock is SUPER+CTRL+L; this just
 -- keeps your old muscle-memory key working too (harmless duplicate).
 --------------------------------------------------------------------------
