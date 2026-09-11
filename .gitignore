@@ -5,3 +5,4 @@ nvim/.config/nvim/lazy-lock.json
 nvim/.config/nvim/lazyvim.json
 bin/.local/bin/__pycache__
 dotdeps/.config/dotdeps/logs
+/herdr/.config/herdr/plugins/github

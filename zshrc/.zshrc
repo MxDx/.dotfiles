@@ -306,3 +306,5 @@ fi
 # Leave Tab to native completion; deja suggestions are still accepted via -> / End.
 export DEJA_CYCLE_KEY="^N"
 eval "$(deja init zsh)"
+
+source <(herdr completion zsh)
