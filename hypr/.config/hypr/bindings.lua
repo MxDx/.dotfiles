@@ -31,7 +31,15 @@
 -- lives on SUPER+RETURN instead, so T was spare functionality, not a name
 -- collision.
 --------------------------------------------------------------------------
-hl.unbind("SUPER + W") -- was: close window (redundant w/ SUPER+Q)
+-- Correction: on this Omarchy build, close-window was only ever bound to
+-- SUPER+W (not also SUPER+Q like current upstream) -- reclaiming W below
+-- removed the only working close bind. Bind Q explicitly ourselves instead
+-- of trusting Omarchy's default for it, so this doesn't depend on which
+-- build/version is installed.
+hl.unbind("SUPER + Q")
+o.bind("SUPER + Q", "Close window", hl.dsp.window.close())
+
+hl.unbind("SUPER + W") -- was: close window (now covered explicitly by SUPER+Q above)
 o.bind("SUPER + W", "Toggle window floating/tiling", hl.dsp.window.float({ action = "toggle" }))
 hl.unbind("SUPER + T") -- was: toggle window floating/tiling (moved to SUPER+W above)
 o.bind("SUPER + T", "Terminal", "kitty")
